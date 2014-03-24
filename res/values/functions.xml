@@ -58,18 +58,18 @@
     <string name="identification__system_build_prop" translatable="false"><![CDATA[Will restrict access to the system build properties file]]></string>
     <string name="identification__sys_block_____cid" translatable="false"><![CDATA[Will restrict direct access to CID (Card Identification Register = SD card serial number)]]></string>
     <string name="identification__sys_class_____cid" translatable="false"><![CDATA[Will restrict direct access to CID (Card Identification Register = SD card serial number)]]></string>
-    <string name="identification_AdvertisingId" translatable="false"><![CDATA[Will restrict access to the Google advertising identifier]]></string>
+    <string name="identification_AdvertisingId" translatable="false"><![CDATA[Will restrict access to the Google advertising identifier. See also the <a href="https://developer.android.com/google/play-services/id.html">Google documentation</a>.]]></string>
     <string name="identification_getString" translatable="false"><![CDATA[Will restrict access to the Android ID]]></string>
-    <string name="identification_getDescriptor" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/view/InputDevice.html#getDescriptor()">Google documentation</a>]]></string>
+    <string name="identification_getDescriptor" translatable="false"><![CDATA[Will inhibit to get input device descriptors. Input device descriptors are unique and stable identifiers for input devices like keyboard, stylus, button, touchscreen etc. See also the <a href="https://developer.android.com/reference/android/view/InputDevice.html#getDescriptor()">Google documentation</a>.]]></string>
     <string name="identification_GservicesProvider" translatable="false"><![CDATA[Will restrict direct access to android_id, acquired through the Google services provider]]></string>
-    <string name="identification_SERIAL" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/os/Build.html#SERIAL">Google documentation</a>]]></string>
+    <string name="identification_SERIAL" translatable="false"><![CDATA[Will restrict access to the hardware serial number. See also the <a href="https://developer.android.com/reference/android/os/Build.html#SERIAL">Google documentation</a>.]]></string>
     <!-- internet -->
-    <string name="internet_getAllByName" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/InetAddress.html#getAllByName(java.lang.String)">Google documentation</a>]]></string>
+    <string name="internet_getAllByName" translatable="false"><![CDATA[Will inhibit to get the IP addresses associated with a given host. See also the <a href="https://developer.android.com/reference/java/net/InetAddress.html#getAllByName(java.lang.String)">Google documentation</a>.]]></string>
     <string name="internet_getByAddress" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/InetAddress.html#getByAddress(java.lang.String,%20byte[])">Google documentation</a>]]></string>
-    <string name="internet_getByName" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/InetAddress.html#getByName(java.lang.String)">Google documentation</a>]]></string>
+    <string name="internet_getByName" translatable="false"><![CDATA[Will inhibit to get the address of a host according to the given host name. See also the <a href="https://developer.android.com/reference/java/net/InetAddress.html#getByName(java.lang.String)">Google documentation</a>.]]></string>
     <string name="internet_getByInetAddress" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getByInetAddress(java.net.InetAddress)">Google documentation</a>]]></string>
     <string name="internet_getNetworkInterfaces" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getNetworkInterfaces()">Google documentation</a>]]></string>
-    <string name="internet_inet" translatable="false"><![CDATA[<a href="http://developer.android.com/reference/android/Manifest.permission.html#INTERNET">Google documentation</a>]]></string>
+    <string name="internet_inet" translatable="false"><![CDATA[Will restrict access to the internet. See also the <a href="http://developer.android.com/reference/android/Manifest.permission.html#INTERNET">Google documentation</a>]]></string>
     <string name="internet_getActiveNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getActiveNetworkInfo()">Google documentation</a>]]></string>
     <string name="internet_getAllNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getAllNetworkInfo()">Google documentation</a>]]></string>
     <string name="internet_getNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getNetworkInfo(int)">Google documentation</a>]]></string>
@@ -134,7 +134,7 @@
     <string name="messages_android_provider_Telephony_SMS_RECEIVED" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/provider/Telephony.Sms.Intents.html#SMS_RECEIVED_ACTION">Google documentation</a>]]></string>
     <string name="messages_android_provider_Telephony_WAP_PUSH_RECEIVED" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/provider/Telephony.Sms.Intents.html#WAP_PUSH_RECEIVED_ACTION">Google documentation</a>]]></string>
     <!-- network -->
-    <string name="network_getAddress" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/bluetooth/BluetoothAdapter.html#getAddress()">Google documentation</a><br /><a href="https://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#getAddress()">Google documentation</a>]]></string>
+    <string name="network_getAddress" translatable="false"><![CDATA[Will restrict access to the hardware address of the local Bluetooth adapter or a Bluetooth device. See also the Google documentation about <a href="https://developer.android.com/reference/android/bluetooth/BluetoothAdapter.html#getAddress()">BluetoothAdapter</a><br />or<br /><a href="https://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#getAddress()">BluetoothDevice</a>.]]></string>
     <string name="network_getBondedDevices" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/bluetooth/BluetoothAdapter.html#getBondedDevices()">Google documentation</a>]]></string>
     <string name="network_getHardwareAddress" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getHardwareAddress()">Google documentation</a>]]></string>
     <string name="network_getInetAddresses" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getInetAddresses()">Google documentation</a>]]></string>
@@ -153,14 +153,14 @@
     <string name="nfc_android_nfc_action_TECH_DISCOVERED" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/nfc/NfcAdapter.html#ACTION_TECH_DISCOVERED">Google documentation</a>]]></string>
     <!-- notifications -->
     <string name="notifications_android_service_notification_NotificationListenerService" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/service/notification/NotificationListenerService.html">Google documentation</a>]]></string>
-    <string name="notifications_com_google_android_c2dm_intent_REGISTRATION" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/com/google/android/gms/gcm/GoogleCloudMessaging.html">Google documentation</a>]]></string>
-    <string name="notifications_com_google_android_c2dm_intent_RECEIVE" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/com/google/android/gms/gcm/GoogleCloudMessaging.html">Google documentation</a>]]></string>
+    <string name="notifications_com_google_android_c2dm_intent_REGISTRATION" translatable="false"><![CDATA[Will inhibit to get a registration ID for <a href="https://developer.android.com/reference/com/google/android/gms/gcm/GoogleCloudMessaging.html">Google Cloud Messaging</a>.]]></string>
+    <string name="notifications_com_google_android_c2dm_intent_RECEIVE" translatable="false"><![CDATA[Will prevent the app from receiving <a href="https://developer.android.com/reference/com/google/android/gms/gcm/GoogleCloudMessaging.html">Google Cloud Messages</a>.]]></string>
     <!-- overlay -->
     <string name="overlay_addView" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/view/ViewManager.html#addView(android.view.View,%20android.view.ViewGroup.LayoutParams)">Google documentation</a>]]></string>
     <string name="overlay_removeView" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/view/ViewManager.html#removeView(android.view.View)">Google documentation</a>]]></string>
     <string name="overlay_updateViewLayout" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/view/ViewManager.html#updateViewLayout(android.view.View,%20android.view.ViewGroup.LayoutParams)">Google documentation</a>]]></string>
     <!-- phone -->
-    <string name="phone_getDeviceId" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getDeviceId()">Google documentation</a>]]></string>
+    <string name="phone_getDeviceId" translatable="false"><![CDATA[Will restrict access to the <a href="https://en.wikipedia.org/wiki/IMEI">IMEI</a>. See also the <a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getDeviceId()">Google documentation</a>. Note, that restricting <b><em>getDeviceId</em></b> will automatically restrict <b><em>getPhoneType</em></b>.]]></string>
     <string name="phone_getIsimDomain" translatable="false"><![CDATA[Will restrict access to hidden function to get <a href="https://en.wikipedia.org/wiki/IP_Multimedia_Services_Identity_Module">ISIM information</a>]]></string>
     <string name="phone_getIsimImpi" translatable="false"><![CDATA[Will restrict access to hidden function to get <a href="https://en.wikipedia.org/wiki/IP_Multimedia_Services_Identity_Module">ISIM information</a>]]></string>
     <string name="phone_getIsimImpu" translatable="false"><![CDATA[Will restrict access to hidden function to get <a href="https://en.wikipedia.org/wiki/IP_Multimedia_Services_Identity_Module">ISIM information</a>]]></string>
@@ -168,7 +168,7 @@
     <string name="phone_getLine1Number" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getLine1Number()">Google documentation</a>]]></string>
     <string name="phone_getMsisdn" translatable="false"><![CDATA[Will restrict access to hidden function to get <a href="https://en.wikipedia.org/wiki/MSISDN">MSISDN</a>]]></string>
     <string name="phone_getSimSerialNumber" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSimSerialNumber()">Google documentation</a>]]></string>
-    <string name="phone_getSubscriberId" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSubscriberId()">Google documentation</a>]]></string>
+    <string name="phone_getSubscriberId" translatable="false"><![CDATA[Will restrict access to the subscriber ID. See also the <a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSubscriberId()">Google documentation</a>. Note, that restricting <b><em>getSubscriberId</em></b> will automatically restrict <b><em>getPhoneType</em></b>.]]></string>
     <string name="phone_getVoiceMailAlphaTag" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getVoiceMailAlphaTag()">Google documentation</a>]]></string>
     <string name="phone_getVoiceMailNumber" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getVoiceMailNumber()">Google documentation</a>]]></string>
     <string name="phone_listen" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#listen(android.telephony.PhoneStateListener,%20int)">Google documentation</a>]]></string>
@@ -176,7 +176,7 @@
     <string name="phone_getNetworkOperator" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getNetworkOperator()">Google documentation</a>]]></string>
     <string name="phone_getNetworkOperatorName" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getNetworkOperatorName()">Google documentation</a>]]></string>
     <string name="phone_getNetworkType" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getNetworkType()">Google documentation</a>]]></string>
-    <string name="phone_getPhoneType" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getPhoneType()">Google documentation</a>]]></string>
+    <string name="phone_getPhoneType" translatable="false"><![CDATA[When restricted, the phone type will always be GSM. See also the <a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getPhoneType()">Google documentation</a>.]]></string>
     <string name="phone_getSimCountryIso" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSimCountryIso()">Google documentation</a>]]></string>
     <string name="phone_getSimOperator" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSimOperator()">Google documentation</a>]]></string>
     <string name="phone_getSimOperatorName" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/telephony/TelephonyManager.html#getSimOperatorName()">Google documentation</a>]]></string>
@@ -195,8 +195,8 @@
     <string name="phone_Configuration_MCC" translatable="false"><![CDATA[Will restrict access to the <a href="https://en.wikipedia.org/wiki/Mobile_country_code">MCC</a>]]></string>
     <string name="phone_Configuration_MNC" translatable="false"><![CDATA[Will restrict access to the <a href="https://en.wikipedia.org/wiki/Mobile_Network_Code">MNC</a>]]></string>
     <!-- sensors -->
-    <string name="sensors_getDefaultSensor" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/hardware/SensorManager.html#getDefaultSensor(int)">Google documentation</a>]]></string>
-    <string name="sensors_getSensorList" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/hardware/SensorManager.html#getSensorList(int)">Google documentation</a>]]></string>
+    <string name="sensors_getDefaultSensor" translatable="false"><![CDATA[Will restrict access to the default sensor of a given type. See also the <a href="https://developer.android.com/reference/android/hardware/SensorManager.html#getDefaultSensor(int)">Google documentation</a>.]]></string>
+    <string name="sensors_getSensorList" translatable="false"><![CDATA[Will restrict access to the list of available sensors of a certain type. See also the <a href="https://developer.android.com/reference/android/hardware/SensorManager.html#getSensorList(int)">Google documentation</a>.]]></string>
     <!-- shell -->
     <string name="shell_sh" translatable="false"><![CDATA[Will restrict access to a Linux shell]]></string>
     <string name="shell_su" translatable="false"><![CDATA[Will restrict access to a root Linux shell]]></string>
@@ -207,7 +207,7 @@
     <!-- storage -->
     <string name="storage_media" translatable="false"><![CDATA[Will restrict access to secondary external storage(s) (<a href="http://www.chainfire.eu/articles/113/Is_Google_blocking_apps_writing_to_SD_cards_/">article</a>)]]></string>
     <string name="storage_sdcard" translatable="false"><![CDATA[Will restrict access to primary external storage (<a href="http://www.chainfire.eu/articles/113/Is_Google_blocking_apps_writing_to_SD_cards_/">article</a>)<br /><br /><a href="http://developer.android.com/reference/android/Manifest.permission.html#READ_EXTERNAL_STORAGE">Google documentation</a>]]></string>
-    <string name="storage_getExternalStorageState" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/os/Environment.html#getExternalStorageState()">Google documentation</a>]]></string>
+    <string name="storage_getExternalStorageState" translatable="false"><![CDATA[Will restrict access to the current state of the primary external storage device. See <a href="https://developer.android.com/reference/android/os/Environment.html#getExternalStorageState()">Google documentation</a> for possible states.]]></string>
     <string name="storage_open" translatable="false"><![CDATA[Will restrict access to files on the SD card (or internal storage for devices without)]]></string>
     <!-- system -->
     <string name="system_getInstalledApplications" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/content/pm/PackageManager.html#getInstalledApplications(int)">Google documentation</a>]]></string>
