@@ -15,9 +15,13 @@ Changelog
 
 **Next release**
 
-* Updated embedded documentation
-
 [Open issues](https://github.com/M66B/XPrivacy/issues?state=open)
+
+**Version 2.0.12 STABLE**
+
+* Updated embedded documentation
+* Fixed some minor issues reported by support info
+* Updated traditional Chinese translation
 
 **Version 2.0.11 BETA**
 
