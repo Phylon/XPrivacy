@@ -90,14 +90,24 @@ OR
 
 **Using XPrivacy is entirely at your own risk**
 
-![Applications](https://raw.github.com/M66B/XPrivacy/master/screenshots/applications.png)
-![Categories](https://raw.github.com/M66B/XPrivacy/master/screenshots/categories.png)
-![Application](https://raw.github.com/M66B/XPrivacy/master/screenshots/application.png)
-![Expert](https://raw.github.com/M66B/XPrivacy/master/screenshots/expert.png)
-![Help](https://raw.github.com/M66B/XPrivacy/master/screenshots/help.png)
-![Settings](https://raw.github.com/M66B/XPrivacy/master/screenshots/settings.png)
-![Usage data](https://raw.github.com/M66B/XPrivacy/master/screenshots/usagedata.png)
-![Menu](https://raw.github.com/M66B/XPrivacy/master/screenshots/menu.png)
+<img src="screenshots/categories.png" width="232" hspace="4"/>
+<img src="screenshots/applications.png" width="232" hspace="4"/>
+<img src="screenshots/application.png" width="232" hspace="4"/>
+<img src="screenshots/expert.png" width="232" hspace="4"/>
+<img src="screenshots/expert-2.png" width="232" hspace="4"/>
+<img src="screenshots/help.png" width="232" hspace="4"/>
+<img src="screenshots/settings.png" width="232" hspace="4"/>
+<img src="screenshots/settings-2.png" width="232" hspace="4"/>
+<img src="screenshots/settings-3.png" width="232" hspace="4"/>
+<img src="screenshots/usagedata.png" width="232" hspace="4"/>
+<img src="screenshots/menu.png" width="232" hspace="4"/>
+<img src="screenshots/sort.png" width="232" hspace="4"/>
+<img src="screenshots/filter.png" width="232" hspace="4"/>
+<img src="screenshots/template.png" width="232" hspace="4"/>
+<img src="screenshots/toggle.png" width="232" hspace="4"/>
+<img src="screenshots/on-demand-dialogue.png" width="232" hspace="4"/>
+<img src="screenshots/whitelist.png" width="232" hspace="4"/>
+<img src="screenshots/about.png" width="232" hspace="4"/>
 
 Features
 --------
@@ -202,7 +212,7 @@ For easy usage, data is restricted by category:
 		* Cell location changed
 	* prevent sending extra commands (aGPS data)
 	* return an empty list of Wi-Fi scan results
-	* prevents connecting to Google Play services
+	* prevent [activity recognition](http://developer.android.com/training/location/activity-recognition.html)
 <a name="media"></a>
 * Media
 	* prevent recording audio
@@ -330,6 +340,9 @@ XPrivacy has been tested with Android version 4.0.3 - 4.4.2 (ICS, JellyBean, Kit
 and is reported to work with most Android variants, including stock ROMs.
 
 **XPrivacy is not compatible with LBE Security Master** ([issue](https://github.com/M66B/XPrivacy/issues/1231))
+
+XPrivacy seems not to be compatible with [OLYMPUS Image Share](https://play.google.com/store/apps/details?id=jp.olympusimaging.oishare)
+for unknown reasons ([issue](https://github.com/M66B/XPrivacy/issues/1607)).
 
 Installation
 ------------
@@ -674,6 +687,7 @@ No, because it's too difficult to implement something like XPrivacy on these OS'
 * checks for root
 * lockscreen
 * time(zone)
+* nag-screens, popups
 
 No, because I don't consider this information to be privacy-sensitive data, i.e., able to identify you and collect data about you. I am happy to add new restrictions for data that is really privacy-sensitive.
 
@@ -844,6 +858,9 @@ I have really spent a lot of time developing XPrivacy and I am happy to look int
 but I am asking you to properly document your issue.
 *It doesn't work* or *it crashes* is insufficient.
 So, please describe the exact steps to reproduce the problem and/or provide a logcat.
+
+If you requested a new feature: there is a feature stop since version 2.x.
+
 See [here](https://github.com/M66B/XPrivacy#support) for more details.
 
 <a name="FAQ53"></a>
@@ -908,7 +925,7 @@ and include information about your device type, Android and XPrivacy version.
 
 If you have a feature request, please [create an issue](https://github.com/M66B/XPrivacy/issues).
 
-Note that there is a stop on big new features, read [here](http://forum.xda-developers.com/showpost.php?p=50535073&postcount=7547) for more information.
+Note that there is a feature stop, read [here](http://forum.xda-developers.com/showpost.php?p=50535073&postcount=7547) for more information.
 
 **One feature request per issue please!**
 
