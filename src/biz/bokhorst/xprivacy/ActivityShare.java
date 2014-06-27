@@ -237,11 +237,12 @@ public class ActivityShare extends ActivityBase {
 		spRestriction.setSelection(pos);
 
 		// Build template adapter
-		SpinnerAdapter saAdapter = new SpinnerAdapter(this, android.R.layout.simple_spinner_item);
-		saAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		for (int i = 1; i <= 5; i++)
-			saAdapter.add(getString(R.string.menu_template) + " " + i);
-		spTemplate.setAdapter(saAdapter);
+		SpinnerAdapter spAdapter = new SpinnerAdapter(this, android.R.layout.simple_spinner_item);
+		spAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spAdapter.add(getString(R.string.title_default));
+		for (int i = 1; i <= 4; i++)
+			spAdapter.add(getString(R.string.title_alternate) + " " + i);
+		spTemplate.setAdapter(spAdapter);
 
 		// Build application list
 		AppListTask appListTask = new AppListTask();
@@ -361,7 +362,7 @@ public class ActivityShare extends ActivityBase {
 								new SubmitTask().executeOnExecutor(mExecutor);
 							} else {
 								String message = getString(R.string.msg_limit, ActivityShare.cSubmitLimit + 1);
-								Toast.makeText(ActivityShare.this, message, Toast.LENGTH_SHORT).show();
+								Toast.makeText(ActivityShare.this, message, Toast.LENGTH_LONG).show();
 								btnOk.setEnabled(false);
 							}
 						}
@@ -378,7 +379,7 @@ public class ActivityShare extends ActivityBase {
 			public void onClick(View v) {
 				if (mRunning) {
 					mAbort = true;
-					Toast.makeText(ActivityShare.this, getString(R.string.msg_abort), Toast.LENGTH_SHORT).show();
+					Toast.makeText(ActivityShare.this, getString(R.string.msg_abort), Toast.LENGTH_LONG).show();
 				} else
 					finish();
 			}
@@ -1050,6 +1051,15 @@ public class ActivityShare extends ActivityBase {
 					String name = attributes.getValue("Name");
 					String value = attributes.getValue("Value");
 
+					// Failsafe
+					if (name == null)
+						return;
+
+					// Do not import version number
+					if (name.equals(PrivacyManager.cSettingVersion))
+						return;
+
+					// Decode legacy type
 					if (name.startsWith("Account.") || name.startsWith("Application.") || name.startsWith("Contact.")
 							|| name.startsWith("Template.") || name.startsWith("Whitelist.")) {
 						name = name.replace("Whitelist.", "");

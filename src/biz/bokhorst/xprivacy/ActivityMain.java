@@ -166,7 +166,8 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 		// Import license file
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction()))
-			Util.importProLicense(new File(getIntent().getData().getEncodedPath()));
+			if (Util.importProLicense(new File(getIntent().getData().getEncodedPath())) != null)
+				Toast.makeText(this, getString(R.string.menu_pro), Toast.LENGTH_LONG).show();
 
 		// Set layout
 		setContentView(R.layout.mainlist);
@@ -346,8 +347,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 				if (code > 0) {
 					Util.setPro(true);
 					invalidateOptionsMenu();
-					Toast toast = Toast.makeText(this, getString(R.string.menu_pro), Toast.LENGTH_LONG);
-					toast.show();
+					Toast.makeText(this, getString(R.string.menu_pro), Toast.LENGTH_LONG).show();
 				} else if (reason == RETRY) {
 					Util.setPro(false);
 					mProHandler.postDelayed(new Runnable() {
@@ -606,6 +606,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 						spRestriction.setSelection(0);
 						((EditText) findViewById(R.id.etFilter)).setText("");
 						ActivityMain.this.recreate();
+						Toast.makeText(ActivityMain.this, getString(R.string.msg_reboot), Toast.LENGTH_LONG).show();
 					}
 				}.executeOnExecutor(mExecutor);
 			}
@@ -629,8 +630,9 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		// Template selector
 		SpinnerAdapter spAdapter = new SpinnerAdapter(this, android.R.layout.simple_spinner_item);
 		spAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		for (int i = 1; i <= 5; i++)
-			spAdapter.add(getString(R.string.menu_template) + " " + i);
+		spAdapter.add(getString(R.string.title_default));
+		for (int i = 1; i <= 4; i++)
+			spAdapter.add(getString(R.string.title_alternate) + " " + i);
 		spTemplate.setAdapter(spAdapter);
 
 		// Template definition
@@ -790,6 +792,19 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 		dlgAbout.setCancelable(true);
 		dlgAbout.show();
+		dlgAbout.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				Dialog dlgUsage = new Dialog(ActivityMain.this);
+				dlgUsage.requestWindowFeature(Window.FEATURE_LEFT_ICON);
+				dlgUsage.setTitle(R.string.title_usage_header);
+				dlgUsage.setContentView(R.layout.usage);
+				dlgUsage.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, getThemed(R.attr.icon_launcher));
+				dlgUsage.setCancelable(true);
+				dlgUsage.show();
+			}
+		});
 	}
 
 	private void optionDump() {
@@ -1159,12 +1174,16 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 			boolean partialRestricted = false;
 			boolean partialAsked = false;
-			if (holder.restricted)
+			if (holder.restricted || !holder.asked)
 				for (Hook hook : PrivacyManager.getHooks(restrictionName)) {
 					String settingName = restrictionName + "." + hook.getName();
-					String childValue = PrivacyManager.getSetting(userId, getTemplate(), settingName,
+					String childValue = PrivacyManager.getSetting(
+							userId,
+							getTemplate(),
+							settingName,
 							Boolean.toString(holder.restricted && !hook.isDangerous())
-									+ (holder.asked ? "+asked" : "+ask"));
+									+ (holder.asked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked"
+											: "+ask"));
 					if (!childValue.contains("true"))
 						partialRestricted = true;
 					if (childValue.contains("asked"))
@@ -1258,8 +1277,11 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 			// Get child info
 			String value = PrivacyManager.getSetting(userId, getTemplate(), settingName, null);
+			// This is to circumvent caching problems
+			// The child value depends on the parent value
 			if (value == null)
-				value = Boolean.toString(parentRestricted && !hook.isDangerous()) + (parentAsked ? "+asked" : "+ask");
+				value = Boolean.toString(parentRestricted && !hook.isDangerous())
+						+ (parentAsked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked" : "+ask");
 			holder.restricted = value.contains("true");
 			holder.asked = (!ondemand || value.contains("asked"));
 			Bitmap bmRestricted = (parentRestricted && holder.restricted ? getFullCheckBox() : getOffCheckBox());
@@ -1866,7 +1888,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 						// Notify restart
 						if (oldState.contains(true))
-							Toast.makeText(ActivityMain.this, getString(R.string.msg_restart), Toast.LENGTH_SHORT)
+							Toast.makeText(ActivityMain.this, getString(R.string.msg_restart), Toast.LENGTH_LONG)
 									.show();
 
 						// Display new state
@@ -1906,7 +1928,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 						// Notify restart
 						if (!newState.equals(oldState))
-							Toast.makeText(ActivityMain.this, getString(R.string.msg_restart), Toast.LENGTH_SHORT)
+							Toast.makeText(ActivityMain.this, getString(R.string.msg_restart), Toast.LENGTH_LONG)
 									.show();
 
 						// Display new state

@@ -247,6 +247,8 @@ public class PrivacyManager {
 			if (!cached) {
 				// Get restriction
 				result = PrivacyService.getRestriction(query, false, "");
+				if (result.debug)
+					Util.logStack(null, Log.WARN);
 
 				// Add to cache
 				key.restricted = result.restricted;
@@ -326,7 +328,10 @@ public class PrivacyManager {
 			try {
 				PRestriction query = new PRestriction(uid, restrictionName, methodName, false);
 				query.extra = extra;
-				result.restricted = PrivacyService.getRestriction(query, true, secret).restricted;
+				PRestriction restriction = PrivacyService.getRestriction(query, true, secret);
+				result.restricted = restriction.restricted;
+				if (restriction.debug)
+					Util.logStack(null, Log.WARN);
 
 				// Add to cache
 				if (result.time >= 0) {
@@ -522,6 +527,7 @@ public class PrivacyManager {
 
 		// Apply template
 		Util.log(null, Log.WARN, "Applying template=" + templateName);
+		boolean hasOndemand = false;
 		List<PRestriction> listPRestriction = new ArrayList<PRestriction>();
 		for (String rRestrictionName : listRestriction) {
 			if (clear)
@@ -532,6 +538,7 @@ public class PrivacyManager {
 					+ "+ask");
 			boolean parentRestricted = parentValue.contains("true");
 			boolean parentAsked = (!ondemand || parentValue.contains("asked"));
+			hasOndemand = hasOndemand || !parentAsked;
 			PRestriction parentMerge;
 			if (clear)
 				parentMerge = new PRestriction(uid, rRestrictionName, null, parentRestricted, parentAsked);
@@ -544,8 +551,10 @@ public class PrivacyManager {
 			if (methods)
 				for (Hook hook : getHooks(rRestrictionName)) {
 					String settingName = rRestrictionName + "." + hook.getName();
-					String value = getSetting(userId, templateName, settingName, Boolean.toString(parentRestricted)
-							+ (parentAsked ? "+asked" : "+ask"));
+					String value = getSetting(userId, templateName, settingName, null);
+					if (value == null)
+						value = Boolean.toString(parentRestricted && !hook.isDangerous())
+								+ (parentAsked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked" : "+ask");
 					boolean restricted = value.contains("true");
 					boolean asked = (!ondemand || value.contains("asked"));
 					PRestriction childMerge;
@@ -554,7 +563,7 @@ public class PrivacyManager {
 								&& restricted, parentAsked || asked);
 					else
 						childMerge = getRestrictionEx(uid, rRestrictionName, hook.getName());
-					if ((parentRestricted && !restricted) || (!parentAsked && asked) || !clear) {
+					if ((parentRestricted && !restricted) || (!parentAsked && asked) || hook.isDangerous() || !clear) {
 						PRestriction child = new PRestriction(uid, rRestrictionName, hook.getName(),
 								(parentRestricted && restricted) || childMerge.restricted, (parentAsked || asked)
 										&& childMerge.asked);
@@ -563,6 +572,8 @@ public class PrivacyManager {
 				}
 		}
 		setRestrictionList(listPRestriction);
+		if (hasOndemand)
+			PrivacyManager.setSetting(uid, PrivacyManager.cSettingOnDemand, Boolean.toString(true));
 	}
 
 	// White listing
@@ -693,7 +704,10 @@ public class PrivacyManager {
 					}
 
 				// Add to cache
-				key.setValue(value);
+				if (value == null)
+					key.setValue(defaultValue);
+				else
+					key.setValue(value);
 				synchronized (mSettingsCache) {
 					if (mSettingsCache.containsKey(key))
 						mSettingsCache.remove(key);

@@ -130,6 +130,7 @@
     <string name="title_whitelist">Dodaj \'%1$s\' na belo listo</string>
     <string name="title_allow">Dovoli</string>
     <string name="title_deny">Zavrni</string>
+    <string name="title_dontknow">Don\'t know</string>
     <string name="title_pleasesubmit">Prosimo, pošljite Vaše omejitve za pomoč drugim</string>
     <string name="title_permissions">Pravice</string>
     <string name="title_set_restrict">Omeji</string>
@@ -138,6 +139,13 @@
     <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Omogoči omejevanje na zahtevo</string>
     <string name="title_disable_ondemand">Onemogoči omejevanje na zahtevo</string>
+    <string name="title_default">Default</string>
+    <string name="title_alternate">Alternate</string>
+    <string name="title_usage_header">Usage</string>
+    <string name="title_usage_text_1">1. Find the application to restrict in the main application list</string>
+    <string name="title_usage_text_2">2. Tap on the application icon</string>
+    <string name="title_usage_text_3">3. Tap the first check box of any category you want to restrict</string>
+    <string name="title_usage_footer">Use common sense when restricting, don\'t expect internet access if you restricted the internet category, etc.</string>
     <string name="settings_serial">Serijska št.</string>
     <string name="settings_lat">Geografska širina</string>
     <string name="settings_lon">Geografska dolžina</string>

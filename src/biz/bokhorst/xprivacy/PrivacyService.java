@@ -71,8 +71,8 @@ public class PrivacyService {
 	private static final String cTableUsage = "usage";
 	private static final String cTableSetting = "setting";
 
-	private static final int cCurrentVersion = 345;
-	private static final String cServiceName = "xprivacy344";
+	private static final int cCurrentVersion = 351;
+	private static final String cServiceName = "xprivacy347";
 
 	// TODO: define column names
 	// sqlite3 /data/system/xprivacy/xprivacy.db
@@ -511,12 +511,14 @@ public class PrivacyService {
 					// Default dangerous
 					if (!methodFound && hook != null && hook.isDangerous())
 						if (!getSettingBool(userId, PrivacyManager.cSettingDangerous, false)) {
-							Version sVersion = new Version(getSetting(new PSetting(userId, "",
-									PrivacyManager.cSettingVersion, "0.0")).value);
-							if (sVersion.compareTo(new Version("2.0.32")) < 0) {
+							String version = getSetting(new PSetting(userId, "", PrivacyManager.cSettingVersion, "0.0")).value;
+							if (new Version(version).compareTo(new Version("2.0.32")) < 0) {
 								mresult.restricted = false;
 								if (hook.whitelist() == null)
 									mresult.asked = true;
+							} else {
+								mresult.restricted = false;
+								mresult.asked = (hook.whitelist() == null);
 							}
 						}
 
@@ -581,6 +583,9 @@ public class PrivacyService {
 			long ms = System.currentTimeMillis() - start;
 			Util.log(null, Log.INFO,
 					String.format("get service %s%s %d ms", restriction, (cached ? " (cached)" : ""), ms));
+
+			if (mresult.debug)
+				Util.logStack(null, Log.WARN);
 
 			return mresult;
 		}
@@ -1330,6 +1335,11 @@ public class PrivacyService {
 				if (!getSettingBool(restriction.uid, PrivacyManager.cSettingOnDemand, false))
 					return false;
 
+				// Check version
+				String version = getSetting(new PSetting(userId, "", PrivacyManager.cSettingVersion, "0.0")).value;
+				if (new Version(version).compareTo(new Version("2.1.5")) < 0)
+					return false;
+
 				// Get am context
 				final Context context = getContext();
 				if (context == null)
@@ -1343,12 +1353,9 @@ public class PrivacyService {
 					final ApplicationInfoEx appInfo = new ApplicationInfoEx(context, restriction.uid);
 
 					// Check for system application
-					if (appInfo.isSystem()) {
-						Version sVersion = new Version(getSetting(new PSetting(userId, "",
-								PrivacyManager.cSettingVersion, "0.0")).value);
-						if (sVersion.compareTo(new Version("2.0.38")) < 0)
+					if (appInfo.isSystem())
+						if (new Version(version).compareTo(new Version("2.0.38")) < 0)
 							return false;
-					}
 
 					// Check if activity manager agrees
 					if (!XActivityManagerService.canOnDemand())
@@ -1403,6 +1410,7 @@ public class PrivacyService {
 						// Run dialog in looper
 						mHandler.post(new Runnable() {
 							@Override
+							@SuppressLint("InlinedApi")
 							public void run() {
 								try {
 									// Dialog
@@ -1417,6 +1425,12 @@ public class PrivacyService {
 									alertDialog.setCanceledOnTouchOutside(false);
 									alertDialog.show();
 									holder.dialog = alertDialog;
+
+									// Hide status bar
+									// http://developer.android.com/training/system-ui/status.html
+									if (Build.VERSION.SDK_INT >= 16)
+										alertDialog.getWindow().getDecorView()
+												.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
 
 									// Progress bar
 									final ProgressBar mProgress = (ProgressBar) alertDialog
@@ -1644,6 +1658,16 @@ public class PrivacyService {
 							latch.countDown();
 						}
 					});
+			alertDialogBuilder.setNeutralButton(resources.getString(R.string.title_dontknow),
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// Deny once
+							result.restricted = true;
+							onDemandOnce(restriction, result);
+							latch.countDown();
+						}
+					});
 			return alertDialogBuilder;
 		}
 
@@ -1722,17 +1746,17 @@ public class PrivacyService {
 					setRestrictionInternal(result);
 
 					// Clear category on change
-					for (Hook md : PrivacyManager.getHooks(restriction.restrictionName))
+					for (Hook hook : PrivacyManager.getHooks(restriction.restrictionName))
 						if (!PrivacyManager.canRestrict(restriction.uid, getXUid(), restriction.restrictionName,
-								md.getName())) {
-							result.methodName = md.getName();
+								hook.getName())) {
+							result.methodName = hook.getName();
 							result.restricted = false;
 							result.asked = true;
 							setRestrictionInternal(result);
 						} else {
-							result.methodName = md.getName();
-							result.restricted = !md.isDangerous() && restrict;
-							result.asked = category;
+							result.methodName = hook.getName();
+							result.restricted = restrict && !hook.isDangerous();
+							result.asked = category || (hook.isDangerous() && hook.whitelist() == null);
 							setRestrictionInternal(result);
 						}
 				}

@@ -685,7 +685,7 @@ public class ActivityApp extends ActivityBase {
 			public void onClick(DialogInterface dialog, int _which) {
 				XApplication.manage(ActivityApp.this, mAppInfo.getPackageName().get(which),
 						XApplication.cActionKillProcess);
-				Toast.makeText(ActivityApp.this, getString(R.string.msg_done), Toast.LENGTH_SHORT).show();
+				Toast.makeText(ActivityApp.this, getString(R.string.msg_done), Toast.LENGTH_LONG).show();
 			}
 		});
 		alertDialogBuilder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
@@ -1239,6 +1239,13 @@ public class ActivityApp extends ActivityBase {
 								whitelist = true;
 								break;
 							}
+					if (!whitelist)
+						for (Hook hook : PrivacyManager.getHooks(restrictionName))
+							if (hook.whitelist() != null)
+								if (PrivacyManager.getSettingList(mAppInfo.getUid(), hook.whitelist()).size() > 0) {
+									whitelist = true;
+									break;
+								}
 
 					enabled = PrivacyManager.getSettingBool(mAppInfo.getUid(), PrivacyManager.cSettingRestricted, true);
 
@@ -1318,7 +1325,7 @@ public class ActivityApp extends ActivityBase {
 									// Notify restart
 									if (!newState.equals(oldState))
 										Toast.makeText(ActivityApp.this, getString(R.string.msg_restart),
-												Toast.LENGTH_SHORT).show();
+												Toast.LENGTH_LONG).show();
 
 									holder.pbRunning.setVisibility(View.GONE);
 									holder.imgCbRestricted.setVisibility(View.VISIBLE);
@@ -1610,7 +1617,7 @@ public class ActivityApp extends ActivityBase {
 										// Notify restart
 										if (md.isRestartRequired())
 											Toast.makeText(ActivityApp.this, getString(R.string.msg_restart),
-													Toast.LENGTH_SHORT).show();
+													Toast.LENGTH_LONG).show();
 
 										holder.pbRunning.setVisibility(View.GONE);
 										holder.imgCbMethodRestricted.setVisibility(View.VISIBLE);
@@ -1623,7 +1630,7 @@ public class ActivityApp extends ActivityBase {
 						holder.llMethodName.setClickable(false);
 
 					// Listen for ask changes
-					if (ondemand)
+					if (ondemand && !parent.asked)
 						holder.imgCbMethodAsk.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View view) {

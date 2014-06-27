@@ -180,7 +180,11 @@ For easy usage, data is restricted by category:
 	* return fake input device descriptor
 <a name="internet"></a>
 * Internet
-	* revoke access to the internet
+	* revoke permission to internet access
+	* revoke permission to internet administration
+	* revoke permission to internet bandwidth statistics/administration
+	* revoke permission to [VPN](http://en.wikipedia.org/wiki/Vpn) services
+	* revoke permission to [Mesh networking](http://en.wikipedia.org/wiki/Mesh_networking) services
 	* return fake extra info
 	* return fake disconnected state
 	* return fake supplicant disconnected state
@@ -300,8 +304,9 @@ For easy usage, data is restricted by category:
 	* return unsatisfied link error for load/loadLibrary
 <a name="storage"></a>
 * Storage
-	* revoke permission to the [media storage](http://www.chainfire.eu/articles/113/Is_Google_blocking_apps_writing_to_SD_cards_/)
+	* revoke permission to the [media storage](http://www.doubleencore.com/2014/03/android-external-storage/)
 	* revoke permission to the external storage (SD card)
+	* revoke permission to [MTP](http://en.wikipedia.org/wiki/Media_Transfer_Protocol)
 	* return fake unmounted state
 <a name="system"></a>
 * System
@@ -411,12 +416,24 @@ Upgrading
 * Install the new version over the previous version
 * Start the new version once (else Android will not send the boot completed event)
 * Reboot your device
-* If you are upgrading from a version before 1.99: **wait until the migration has been completed** before starting XPrivacy
+* Wait until the XPrivacy update service has been completed (showing 100%)
 
 When following this procedure, your data will not leak because the Xposed part of XPrivacy keeps running.
 
 Usage
 -----
+
+*Very short tutorial*
+
+* Find the application to restrict in the main application list
+* Tap on the application icon
+* Tap the first check box of any category you want to restrict
+
+Use common sense when restricting, don't expect internet access if you restricted the internet category, etc.
+
+Get used to XPrivacy before using more advanced features, like function exceptions.
+
+*Longer explanation*
 
 The application starts in the main view, where a data category can be selected at the top.
 By ticking one or more check boxes in the list below, you can restrict the selected data category for the chosen applications.
@@ -757,9 +774,12 @@ Note: by default, categories and functions are filtered by permission, so you ma
 The [pro enabler](https://play.google.com/store/apps/details?id=biz.bokhorst.xprivacy.pro) is in the Play Store by request of some early XPrivacy users. In the beginning, there was just one pro feature: export and import all restrictions and settings. Later, fetching [crowd sourced restrictions](http://crowd.xprivacy.eu/) was added as a pro feature. Processing the crowd sourced restrictions requires a big server that has to be paid for. The pro enabler's low price (don't forget Google takes 30%) prevented providing this feature for free. Looking back, I would never have added the pro enabler to the Play Store, but I can no longer remove it because of the existing users. Moreover, not everybody has access to PayPal and not everybody needs all pro features, so for these people the pro enabler is still of use.
 
 <a name="FAQ30"></a>
-**(30) What should I do if an application force closes (crashes)?**
+**(30) What should I do if an application force closes (crashes) or something doesn't work?**
 
-Inspect the application's usage view, via its menus "Usage data" item to see which restrictions the application accesses. Restrict and unrestrict one by one until you have found which one causes the application to force close. Help others by submitting your working set of restrictions.
+Inspect the application's usage view, via the main menu item *Usage data* to see which restrictions were enforced.
+Restrict and unrestrict one by one until you have found which one causes the application to force close.
+Wait 15 seconds after each change to let the XPrivacy cache time-out.
+Help others by submitting your working set of restrictions.
 
 <a name="FAQ31"></a>
 **(31) Can XPrivacy handle non-Java applications?**
@@ -878,14 +898,15 @@ If these suggestions don't help, please create an issue and provide a logcat (se
 
 IMHO you should at least install an ad blocker and a firewall.
 
-* [AdAway](http://sufficientlysecure.org/index.php/adaway/) ([Source Code](https://github.com/dschuermann/ad-away))
-* [CrappaLinks](http://forum.xda-developers.com/showthread.php?t=2603868) ([Source Code](https://github.com/GermainZ/CrappaLinks))
-* [AFWall+](https://play.google.com/store/apps/details?id=dev.ukanth.ufirewall) ([Source Code](https://github.com/ukanth/afwall))
-* [NOGAPPS](http://forum.xda-developers.com/showthread.php?t=1715375) ([Source Code/Multiple Apps](https://github.com/mar-v-in))
-* [OS Monitor](https://f-droid.org/repository/browse/?fdfilter=os%20monitor&fdid=com.eolwral.osmonitor) ([Source Code](https://github.com/eolwral/OSMonitor))
-* [Shadowsocks](https://play.google.com/store/apps/details?id=com.github.shadowsocks) ([Source Code](https://github.com/clowwindy/shadowsocks))
-* [Orbot](https://play.google.com/store/apps/details?id=org.torproject.android) ([Source Code](https://gitweb.torproject.org/orbot.git))
-* [Xabber](https://play.google.com/store/apps/details?id=com.xabber.android) ([Source Code](https://github.com/redsolution/xabber-android))
+* [AdAway](http://sufficientlysecure.org/index.php/adaway/) ([source code](https://github.com/dschuermann/ad-away))
+* [CrappaLinks](http://forum.xda-developers.com/showthread.php?t=2603868) ([source code](https://github.com/GermainZ/CrappaLinks))
+* [AFWall+](https://play.google.com/store/apps/details?id=dev.ukanth.ufirewall) ([source code](https://github.com/ukanth/afwall))
+* [PlayPermissionsExposed](http://forum.xda-developers.com/xposed/modules/playpermissionsexposed-fix-play-store-t2783076) ([source code](https://github.com/GermainZ/PlayPermissionsExposed))
+* [NOGAPPS](http://forum.xda-developers.com/showthread.php?t=1715375) ([source code](https://github.com/mar-v-in))
+* [OS Monitor](https://f-droid.org/repository/browse/?fdfilter=os%20monitor&fdid=com.eolwral.osmonitor) ([source code](https://github.com/eolwral/OSMonitor))
+* [Shadowsocks](https://play.google.com/store/apps/details?id=com.github.shadowsocks) ([source code](https://github.com/clowwindy/shadowsocks))
+* [Orbot](https://play.google.com/store/apps/details?id=org.torproject.android) ([source code](https://gitweb.torproject.org/orbot.git))
+* [Xabber](https://play.google.com/store/apps/details?id=com.xabber.android) ([source code](https://github.com/redsolution/xabber-android))
 
 Please note that these applications are not written by me
 and that you should contact the author for support questions.
@@ -922,11 +943,6 @@ However, it is possible to filter the applications you want to export using the 
 for example only user applications with restrictions,
 and to select these applications using the action bar *select all* (first icon) to only export a part of the applications.
 
-<a name="FAQ55"></a>
-**(55) Why does applying the template not enable on demand restricting?**
-
-Batch enabling on demand restricting using the template could lead to an on demand "hell" and easily bring down your device. On demand restricting is enabled by default for new applications, but not for existing applications. The template enables on demand restricting only if the application on demand restricting master switch is enabled. The master switch can be found in the application specific settings or next to the on/off switch. You can batch enable the master switch by enabling "restrict dangerous" in the main settings.
-
 <a name="FAQ56"></a>
 **(56) How can I recover from a bootloop?**
 
@@ -934,7 +950,7 @@ For devices with a custom recovery (TWRP/CWM) you can flash the [Xposed-Disabler
 
 See [here](https://github.com/M66B/XPrivacy/blob/master/DATABASE.md#xprivacydb) on how to enable debug logging without Xprivacy activated in Xposed.
 
-<a name='FAQ57'></a>
+<a name="FAQ57"></a>
 **(57) How does 'Expert mode' work?**
 
 Expert mode has the following sub-options which can be toggled individually:
@@ -944,6 +960,7 @@ Expert mode has the following sub-options which can be toggled individually:
 * *Use secure connections*
 	* This will force communications with the crowd sourced restrictions server (submitting/fetching, device registration) to travel through a secure socket. Note that this is enabled by default and can only be disabled by enabling *Expert mode*.
 
+<a name="FAQ58"></a>
 **(58) Can I write a thesis about XPrivacy?**
 
 Yes, you can and I will even help you with it.
@@ -951,11 +968,38 @@ However, I will not write code nor text for you. Nevertheless, I will try to ans
 XPrivacy is open source (see also the license section) and all code you write needs to be contributed back to the project.
 To help you I want to see an e-mail from your professor with a confirmation he or she has read and agrees to this FAQ.
 
+<a name="FAQ59"></a>
 **(59) Will you implement multiple profiles?**
 
 No, because privacy is not something that is optional.
 It makes no sense to restrict something during the day and not during the night
 or on your work and not at home.
+
+<a name="FAQ60"></a>
+**(60) The upgrade notification is stuck at 100% !**
+
+This is by design, so you can see the upgrade has completed successfully.
+You can swipe away the notification after you have seen it.
+
+<a name="FAQ61"></a>
+**(61) Can the on demand restricting time-out be increased?**
+
+Unfortunately this is not possible.
+The on demand restricting dialog is holding up system processes
+and Android reboots automatically if there is too long no response.
+
+<a name="FAQ62"></a>
+**(62) How can I 'toggle' multiple applications?**
+
+Multiple selection works as in any Android application.
+Tap and hold down on an application in the application list to start selecting
+and tap other applications to select more applications.
+Toggle restrictions will work on the selected applications.
+
+You can also use the filters to show the applications you want to act on,
+since toggle restrictions works on the visible applications by default.
+There is one exception to this: exporting will be done for all applications by default,
+since the export is meant as full backup.
 
 Support
 -------
@@ -983,7 +1027,7 @@ It is already enough work to support the official versions from the last stable 
 
 If you encounter a bug please [create an issue](https://github.com/M66B/XPrivacy/issues).
 
-Include a [logcat](#FAQ14) when relevant (use [pastebin](http://pastebin.com/) or a similar service).
+Include a [logcat](#FAQ14) when relevant (use [gist](https://gist.github.com/) or a similar service).
 Try to keep the logcat as brief as possible, searching in large logcats is no fun and not useful.
 
 **Do not forget to enable XPrivacy logging using the settings menu!**

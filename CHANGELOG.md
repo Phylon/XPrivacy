@@ -13,9 +13,64 @@ Changelog
 * [Xposed module repository](http://repo.xposed.info/module/biz.bokhorst.xprivacy)
 * [GitHub releases](https://github.com/M66B/XPrivacy/releases)
 
+**Important**
+
+* If you install a version from 2.0.35 the main template will be reset to default (once)
+* If you install a version from 2.1.5 on demand restricting will be disable until the update is completed (once)
+* Dangerous functions need to be restricted always manually (manually includes the template, if defined to do so)
+* Xposed version 2.6+ is required
+
 **Next release**
 
 [Open issues](https://github.com/M66B/XPrivacy/issues?state=open)
+
+**Version 2.1.5 STABLE**
+
+* Added restrictions for [SIP](http://en.wikipedia.org/wiki/Session_Initiation_Protocol) calling ([issue](/../../issues/1739))
+* Disabling on demand restricting until update service completes
+* Showing whitelist icon on category level ([issue](/../../issues/1741))
+* Made *About* scrollable
+* Updated Italian translation
+* Updated Lithuanian translation
+
+**Version 2.1.4 STABLE**
+
+* Fixed applying template with dangerous function restrictions
+* Fixed caching of function template settings
+
+**Version 2.1.3 STABLE**
+
+* Added short usage instructions (check *About*)
+* Added *I don't know* to the on demand restricting dialog, which will deny once
+* Updated Dutch translation
+* Updated German translation
+* Updated Slovak translation
+
+**Version 2.1.2 STABLE**
+
+* Fixed displaying half on demand state template
+* Fixed dangerous functions defaults
+* Fixed on demand defaults when applying template
+* Fixed on demand defaults when on demand restricting category
+
+**Version 2.1.1 STABLE**
+
+* Added restriction for internet administration (*inet_admin*)
+* Added restriction for internet bandwidth statistics/administration (*inet_bw*)
+* Added restriction for [VPN](http://en.wikipedia.org/wiki/Vpn) services (*inet_vpn*)
+* Added restriction for [Mesh networking](http://en.wikipedia.org/wiki/Mesh_networking) services (*inet_mesh*)
+* Added restriction for [MTP](http://en.wikipedia.org/wiki/Media_Transfer_Protocol)
+* Fixed not disabling on demand function settings when on demand restricting for category is disabled
+* Hiding status bar when showing on demand restricting dialog 
+
+**Version 2.1 STABLE**
+
+* Fixed applying template restricting dangerous functions ([issue](/../../issues/1728))
+* Applying template with on demand restricting will enabled on demand restricting setting ([issue](/../../issues/1727))
+* Fixed *inet*, *media* and *sdcard* always on demand restricting ([issue](/../../issues/1722))
+* Do not import version number ([issue](/../../issues/1721))
+* Display *Default* as first template name ([issue](/../../issues/1723))
+* Updated Dutch translation
 
 **Version 2.0.38 STABLE**
 
@@ -39,8 +94,6 @@ Changelog
 * No on demand restricting for restrictions which cannot be used (see limitations)
 * Dropped support for Cydia Substrate, because there are too many unsolved problems
 
-**This version will erase the existing main template** (if not done by an earlier version)
-
 **Version 2.0.35 BETA**
 
 * Fixed toggling dangerous functions not immediately displaying correct template restriction
@@ -51,8 +104,6 @@ Changelog
 	* Cydia Substrate is not able to hook *Settings.Secure*, for which a boot class loader is needed
 	* *Build.SERIAL* cannot be restricted
 	* There will be limited support for this
-
-**This version will erase the existing main template** (if not done by an earlier version)
 
 **Version 2.0.34 BETA**
 
@@ -69,7 +120,7 @@ Changelog
 All above functions throw an exception when restricted.
 Although the exception is part of the standard API, a lot of applications are not prepared to handle an exception.
 
-**This version will erase the existing main template**
+**This version will reset the main template to the default** (if not done by an earlier version)
 
 **Version 2.0.33 BETA**
 

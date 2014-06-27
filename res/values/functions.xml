@@ -79,6 +79,10 @@
     <string name="internet_getByInetAddress" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getByInetAddress(java.net.InetAddress)">Google documentation</a>]]></string>
     <string name="internet_getNetworkInterfaces" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/net/NetworkInterface.html#getNetworkInterfaces()">Google documentation</a>]]></string>
     <string name="internet_inet" translatable="false"><![CDATA[Will restrict access to the internet. Please be aware, that there is no usage data available for this function. <a href="http://developer.android.com/reference/android/Manifest.permission.html#INTERNET">Google documentation</a>]]></string>
+    <string name="internet_inet_admin" translatable="false"><![CDATA[Will restrict access to administation of internet services]]></string>
+    <string name="internet_inet_bw" translatable="false"><![CDATA[Will restrict access to bandwidth statistics and administration]]></string>
+    <string name="internet_inet_vpn" translatable="false"><![CDATA[Will restrict access to <a href="http://en.wikipedia.org/wiki/Vpn">VPN</a> services]]></string>
+    <string name="internet_inet_mesh" translatable="false"><![CDATA[Will restrict access to <a href="http://en.wikipedia.org/wiki/Mesh_networking">Mesh networking</a> services]]></string>
     <string name="internet_getActiveNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getActiveNetworkInfo()">Google documentation</a>]]></string>
     <string name="internet_getAllNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getAllNetworkInfo()">Google documentation</a>]]></string>
     <string name="internet_getNetworkInfo" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/android/net/ConnectivityManager.html#getNetworkInfo(int)">Google documentation</a>]]></string>
@@ -239,9 +243,10 @@
     <string name="shell_start" translatable="false"><![CDATA[<a href="https://developer.android.com/reference/java/lang/ProcessBuilder.html#start()">Google documentation</a>]]></string>
 
     <!-- storage -->
-    <string name="storage_media" translatable="false"><![CDATA[Will restrict access to secondary external storage(s) (<a href="http://www.chainfire.eu/articles/113/Is_Google_blocking_apps_writing_to_SD_cards_/">article</a>). Please be aware, that there is no usage data available for this function.]]></string>
-    <string name="storage_sdcard" translatable="false"><![CDATA[Will restrict access to primary external storage (<a href="http://www.chainfire.eu/articles/113/Is_Google_blocking_apps_writing_to_SD_cards_/">article</a>). Please be aware, that there is no usage data available for this function.<br />See also <br /><a href="http://developer.android.com/reference/android/Manifest.permission.html#READ_EXTERNAL_STORAGE">Google documentation</a>]]></string>
-    <string name="storage_getExternalStorageState" translatable="false"><![CDATA[Will restrict access to the current state of the primary external storage device.<br>See <a href="https://developer.android.com/reference/android/os/Environment.html#getExternalStorageState()">Google documentation</a> for possible states.]]></string>
+    <string name="storage_media" translatable="false"><![CDATA[Will restrict access to secondary external storage(s) (<a href="http://www.doubleencore.com/2014/03/android-external-storage/">article</a>). Please be aware, that there is no usage data available for this function.]]></string>
+    <string name="storage_sdcard" translatable="false"><![CDATA[Will restrict access to primary external storage (<a href="http://www.doubleencore.com/2014/03/android-external-storage/">article</a>). Please be aware, that there is no usage data available for this function.<br />See also <br /><a href="http://developer.android.com/reference/android/Manifest.permission.html#READ_EXTERNAL_STORAGE">Google documentation</a>]]></string>
+    <string name="storage_mtp" translatable="false"><![CDATA[Will restrict access to <a href="http://en.wikipedia.org/wiki/Media_Transfer_Protocol">MTP</a>]]></string>
+    <string name="storage_getExternalStorageState" translatable="false"><![CDATA[Will restrict access to the current state of the primary external storage device.<br />See <a href="https://developer.android.com/reference/android/os/Environment.html#getExternalStorageState()">Google documentation</a> for possible states.]]></string>
     <string name="storage_open" translatable="false"><![CDATA[Will restrict access to files on the SD card (or internal storage for devices without)]]></string>
 
     <!-- system -->
