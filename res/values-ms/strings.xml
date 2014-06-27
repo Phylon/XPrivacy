@@ -135,6 +135,7 @@ namun ia adalah mustahil untuk menjaminkan penggunaan sempurna untuk setiap pera
     <string name="title_set_restrict">Restrict</string>
     <string name="title_template_category">Apply template (categories)</string>
     <string name="title_template_full">Apply template (categories+functions)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Enable on demand restricting</string>
     <string name="title_disable_ondemand">Disable on demand restricting</string>
     <string name="settings_serial">Siri#</string>
@@ -156,7 +157,6 @@ namun ia adalah mustahil untuk menjaminkan penggunaan sempurna untuk setiap pera
     <string name="settings_ondemand">Sekatan di atas permintaan</string>
     <string name="settings_log">Log nyahsilap (perlu mula semula)</string>
     <string name="settings_expert">Mod pakar</string>
-    <string name="settings_dangerous">Sekat fungsi bahaya</string>
     <string name="settings_confidence">Selang keyakinan pengambilan maxima</string>
     <string name="settings_experimental">Fungsi dalam percubaan (perlu mula semula)</string>
     <string name="settings_https">Guna sambungan terjamin</string>

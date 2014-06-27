@@ -135,6 +135,7 @@
     <string name="title_set_restrict">تقييد</string>
     <string name="title_template_category">تطبيق القالب (الفئات)</string>
     <string name="title_template_full">تطبيق القالب (الفئات+الوظائف)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Enable on demand restricting</string>
     <string name="title_disable_ondemand">Disable on demand restricting</string>
     <string name="settings_serial">السيريال#</string>
@@ -156,7 +157,6 @@
     <string name="settings_ondemand">تقييد عند الطلب</string>
     <string name="settings_log"> سِجِل تصحيح الأخطاء (يتطلب إعادة التشغيل) </string>
     <string name="settings_expert">وضع الخبراء</string>
-    <string name="settings_dangerous">تقييد الوظائف الخطيرة</string>
     <string name="settings_confidence">الحد الأقصى لجلب فترة الثقة</string>
     <string name="settings_experimental">وظائف تجريبية</string>
     <string name="settings_https">إستخدم الإتصال الآمن</string>

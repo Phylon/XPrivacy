@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="biz.bokhorst.xprivacy"
     android:installLocation="internalOnly"
-    android:versionCode="334"
-    android:versionName="2.0.27" >
+    android:versionCode="345"
+    android:versionName="2.0.38" >
 
     <uses-sdk
         android:minSdkVersion="15"
@@ -54,7 +54,7 @@
             android:value="true" />
         <meta-data
             android:name="xposedminversion"
-            android:value="42+" />
+            android:value="54" />
         <meta-data
             android:name="xposeddescription"
             android:value="@string/app_description" />
@@ -95,7 +95,7 @@
                 <data android:scheme="file" />
                 <data android:host="*" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*XPrivacy_license.txt" />
+                <data android:pathPattern=".*XPrivacy_license\\.txt" />
             </intent-filter>
         </activity>
         <activity

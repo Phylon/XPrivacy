@@ -135,6 +135,7 @@
     <string name="title_set_restrict">Omeji</string>
     <string name="title_template_category">Uveljavi predlogo (kategorije)</string>
     <string name="title_template_full">Uveljavi predlogo (kategorije+funkcije)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Omogoči omejevanje na zahtevo</string>
     <string name="title_disable_ondemand">Onemogoči omejevanje na zahtevo</string>
     <string name="settings_serial">Serijska št.</string>
@@ -156,7 +157,6 @@
     <string name="settings_ondemand">Omeji na zahtevo</string>
     <string name="settings_log">Beleženje za razvijalce (zahtevan ponovni zagon)</string>
     <string name="settings_expert">Način za strokovnjake</string>
-    <string name="settings_dangerous">Omeji nevarne funkcije</string>
     <string name="settings_confidence">Največji interval prenašanja omejitev</string>
     <string name="settings_experimental">Funkcije za strokovnjake (zahtevan ponovni zagon)</string>
     <string name="settings_https">Uporabi varne povezave</string>

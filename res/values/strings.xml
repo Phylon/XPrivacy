@@ -144,6 +144,7 @@ however it is impossible to guarantee it will work flawlessly on each and every 
     <string name="title_set_restrict">Restrict</string>
     <string name="title_template_category">Apply template (categories)</string>
     <string name="title_template_full">Apply template (categories+functions)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">\t\t\t\tEnable on demand restricting</string>
     <string name="title_disable_ondemand">\t\t\t\tDisable on demand restricting</string>
     <string name="settings_serial">Serial#</string>
@@ -171,7 +172,6 @@ however it is impossible to guarantee it will work flawlessly on each and every 
     <string name="settings_ondemand">Restrict on demand</string>
     <string name="settings_log">Debug log (requires restart)</string>
     <string name="settings_expert">Expert mode</string>
-    <string name="settings_dangerous">Restrict dangerous functions</string>
     <string name="settings_confidence">Maximum fetch confidence interval</string>
     <string name="settings_experimental">Experimental functions (requires restart)</string>
     <string name="settings_https">Use secure connections</string>

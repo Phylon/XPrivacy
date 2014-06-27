@@ -135,6 +135,7 @@ sin embargo no puedo garantizar que funcione sin ningún fallo para cada disposi
     <string name="title_set_restrict">Restrict</string>
     <string name="title_template_category">Apply template (categories)</string>
     <string name="title_template_full">Apply template (categories+functions)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Enable on demand restricting</string>
     <string name="title_disable_ondemand">Disable on demand restricting</string>
     <string name="settings_serial"># de serie</string>
@@ -156,7 +157,6 @@ sin embargo no puedo garantizar que funcione sin ningún fallo para cada disposi
     <string name="settings_ondemand">Restringir en demanda</string>
     <string name="settings_log">Registro de depuración (requiere inicio)</string>
     <string name="settings_expert">Modo experto</string>
-    <string name="settings_dangerous">Denegar funciones peligrosas</string>
     <string name="settings_confidence">Intervalo de confianza para bajar restricciones</string>
     <string name="settings_experimental">Funciones experimentales (requiere reinicio)</string>
     <string name="settings_https">Usar conexiones seguras</string>

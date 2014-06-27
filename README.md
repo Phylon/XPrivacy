@@ -4,6 +4,7 @@ XPrivacy
 The ultimate, yet easy to use, privacy manager for Android
 
 ![Open source Rookie of the year](http://www.xprivacy.eu/open-source-rookie-of-the-year-resized.png)
+([publication](http://www.blackducksoftware.com/news/releases/black-duck-announces-open-source-rookies-year-winners))
 
 Index
 -----
@@ -70,7 +71,7 @@ Depending on the function, XPrivacy skips execution of the original function
 (for example when an application tries to set a proximity alert)
 or alters the result of the original function (for example to return an empty message list).
 
-XPrivacy has been tested with Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat),
+XPrivacy has been tested with Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat),
 and is reported to work with most Android variants, including stock ROMs.
 Root access is needed to install the Xposed framework.
 
@@ -114,7 +115,7 @@ Features
 
 * Simple to use
 * No need to patch anything (no source, no [smali](https://code.google.com/p/smali/) or anything else)
-* For any (stock) variant of Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat)
+* For any (stock) variant of Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat)
 * Newly installed applications are restricted by default
 * Displays data actually used by an application
 * Option to restrict on demand
@@ -240,7 +241,7 @@ For easy usage, data is restricted by category:
 	* prevent receiving TECH discovered
 <a name="notifications"></a>
 * Notifications
-	* prevent receiving statusbar notifications (Android 4.3+)
+	* prevent applications from receiving [statusbar notifications](https://developer.android.com/reference/android/service/notification/NotificationListenerService.html) (Android 4.3+)
 	* prevent [C2DM](https://developers.google.com/android/c2dm/) messages
 <a name="overlay"></a>
 * Overlay
@@ -279,6 +280,19 @@ For easy usage, data is restricted by category:
 * Sensors
 	* return an empty default sensor
 	* return an empty list of sensors
+	* restrict indiviual sensors:
+		* acceleration
+		* gravity
+		* humidity
+		* light
+		* magnetic
+		* motion
+		* orientation
+		* pressure
+		* proximity
+		* rotation
+		* step
+		* temperature
 <a name="shell"></a>
 * Shell
 	* return I/O exception for Linux shell
@@ -320,6 +334,7 @@ Limitations
 * It is not possible to restrict external hardware MAC addresses or the external IP address
 * You cannot restrict *Configuration.MCC/MNC* on demand
 * Allowing contacts for SIM-contacts isn't supported (who is using these anyway these days?)
+* Calendars and contacts cannot be restricted for specific accounts; it is all or nothing; however, it is possible to allow individual contacts with a [pro license](http://www.xprivacy.eu/)
 * The on demand restricting dialog does sometimes not respond and is sometimes hidden
 	* A known situation is starting an application from a notification for the restrictions *inet*, *sdcard* and *media*
 	* Another known situation are some restrictions triggered by hardware buttons, like the volume buttons
@@ -338,7 +353,7 @@ You can still restrict the XPrivacy app's access to accounts, contacts, and othe
 Compatibility
 -------------
 
-XPrivacy has been tested with Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat)
+XPrivacy has been tested with Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat)
 and is reported to work with most Android variants, including stock ROMs.
 
 **XPrivacy is incompatible with LBE Security Master** ([issue](https://github.com/M66B/XPrivacy/issues/1231))
@@ -358,7 +373,7 @@ Installation
 Installation may seem lengthy, but you can actually do it quickly:
 
 1. Requirements:
-	* Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat); check with *System Settings* > *About phone* > *Android version*
+	* Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat); check with *System Settings* > *About phone* > *Android version*
 	* Read about [compatibility](https://github.com/M66B/XPrivacy#compatibility) before installing
 1. **Make a backup**
 1. If you haven't already, root your device; the rooting procedure depends on your device's brand and model.
@@ -474,6 +489,8 @@ XPrivacy asks for the following Android permissions:
 
 If desired, you can even restrict XPrivacy from accessing any of the above,
 but there are some [limitations](https://github.com/M66B/XPrivacy#limitations).
+
+Please note that any Xposed module has basically root permissions and can therefore circumvent any Android permission.
 
 Frequently asked questions
 --------------------------
@@ -694,8 +711,20 @@ No, because it's too difficult to implement something like XPrivacy on these OS'
 * lockscreen
 * time(zone)
 * nag-screens, popups
+* statusbar notifications
 
 No, because I don't consider this information to be privacy-sensitive data, i.e., able to identify you and collect data about you. I am happy to add new restrictions for data that is really privacy-sensitive.
+
+* Calendars by account
+* Contacts by account
+
+For the few users who will be using this, it is too much work to implement.
+The [calendar](http://developer.android.com/guide/topics/providers/calendar-provider.html)
+and [contacts](http://developer.android.com/guide/topics/providers/contacts-provider.html) API are quite complicated.
+There is also a better way to accomplish this.
+You can use different users on your device with different accounts.
+To enable multiple users for a phone you can follow [these instructions](http://www.pocketables.com/2013/03/how-to-enable-multiple-user-mode-on-cyanogenmod-10-1-and-some-other-android-4-2-2-roms.html).
+Note that the user selector on the lockscreen works in landscape only.
 
 <a name="FAQ26"></a>
 **(26) Will you revoke permissions?**
@@ -796,7 +825,7 @@ The same applies to the IMEI number, additionally complicated by legal issues in
 No, the pro license can be used independently.
 
 <a name="FAQ36"></a>
-**(36) Is PayPal the only way to donate?**
+**(36) Is PayPal or Bitcoin the only way to donate?**
 
 Yes, it is not feasible to add other donation methods at the moment.
 
@@ -849,11 +878,14 @@ If these suggestions don't help, please create an issue and provide a logcat (se
 
 IMHO you should at least install an ad blocker and a firewall.
 
-* [AdAway](http://sufficientlysecure.org/index.php/adaway/)
-* [CrappaLinks](http://forum.xda-developers.com/showthread.php?t=2603868)
-* [AFWall+](https://play.google.com/store/apps/details?id=dev.ukanth.ufirewall)
-* [NOGAPPS](http://forum.xda-developers.com/showthread.php?t=1715375)
-* [OS Monitor](https://f-droid.org/repository/browse/?fdfilter=os%20monitor&fdid=com.eolwral.osmonitor)
+* [AdAway](http://sufficientlysecure.org/index.php/adaway/) ([Source Code](https://github.com/dschuermann/ad-away))
+* [CrappaLinks](http://forum.xda-developers.com/showthread.php?t=2603868) ([Source Code](https://github.com/GermainZ/CrappaLinks))
+* [AFWall+](https://play.google.com/store/apps/details?id=dev.ukanth.ufirewall) ([Source Code](https://github.com/ukanth/afwall))
+* [NOGAPPS](http://forum.xda-developers.com/showthread.php?t=1715375) ([Source Code/Multiple Apps](https://github.com/mar-v-in))
+* [OS Monitor](https://f-droid.org/repository/browse/?fdfilter=os%20monitor&fdid=com.eolwral.osmonitor) ([Source Code](https://github.com/eolwral/OSMonitor))
+* [Shadowsocks](https://play.google.com/store/apps/details?id=com.github.shadowsocks) ([Source Code](https://github.com/clowwindy/shadowsocks))
+* [Orbot](https://play.google.com/store/apps/details?id=org.torproject.android) ([Source Code](https://gitweb.torproject.org/orbot.git))
+* [Xabber](https://play.google.com/store/apps/details?id=com.xabber.android) ([Source Code](https://github.com/redsolution/xabber-android))
 
 Please note that these applications are not written by me
 and that you should contact the author for support questions.
@@ -900,17 +932,30 @@ Batch enabling on demand restricting using the template could lead to an on dema
 
 For devices with a custom recovery (TWRP/CWM) you can flash the [Xposed-Disabler-Recovery.zip](http://forum.xda-developers.com/attachment.php?attachmentid=2568891&d=1391958634). Alternatively (on most devices) press the volume down button 5 times during boot (It will vibrate with each press when done correctly).
 
+See [here](https://github.com/M66B/XPrivacy/blob/master/DATABASE.md#xprivacydb) on how to enable debug logging without Xprivacy activated in Xposed.
+
 <a name='FAQ57'></a>
 **(57) How does 'Expert mode' work?**
 
-Expert mode has 3 sub-options which can be toggled individually.
+Expert mode has the following sub-options which can be toggled individually:
 
-* *Restrict system component (Android)*
-	* Enabling this option will allow you to restrict applications which have a UID less than 10000 (Android System, Bluetooth Share, Dialer, NFC, Phone, etc.). Note that restricting these core functions is very dangerous, and can easily lead to boot loops. Always create a backup (export/nandroid) before changing these restrictions.
-* *Restrict dangerous functions*
-	* Enabling this option will allow you to restrict dangerous functions (functions with a red background in the application detail view). Note that disabling this option or expert mode will not change the status of restrictions already in place, it will only prevent dangerous functions from being checked while applying the template or checking a category. Also note that individual dangerous functions can be restricted without enabling this option.
+* *Restrict system components (Android)*
+	* Enabling this option will allow you to restrict applications which have a UID less than 10000 (Android System, Bluetooth Share, Dialer, NFC, Phone, etc.). Note that restricting these core functions is quite dangerous, and can easily lead to boot loops. Always make a backup (export/nandroid) before changing these restrictions.
 * *Use secure connections*
 	* This will force communications with the crowd sourced restrictions server (submitting/fetching, device registration) to travel through a secure socket. Note that this is enabled by default and can only be disabled by enabling *Expert mode*.
+
+**(58) Can I write a thesis about XPrivacy?**
+
+Yes, you can and I will even help you with it.
+However, I will not write code nor text for you. Nevertheless, I will try to answer any questions you have.
+XPrivacy is open source (see also the license section) and all code you write needs to be contributed back to the project.
+To help you I want to see an e-mail from your professor with a confirmation he or she has read and agrees to this FAQ.
+
+**(59) Will you implement multiple profiles?**
+
+No, because privacy is not something that is optional.
+It makes no sense to restrict something during the day and not during the night
+or on your work and not at home.
 
 Support
 -------
@@ -1024,6 +1069,7 @@ News
 * [XPrivacy تطبيق](http://waleedhassan.wordpress.com/2014/01/31/xprivacy/) (January 31, 2014)
 * [Android privacy tool feeds fake data to prying apps](http://www.wired.co.uk/news/archive/2014-04/01/x-privacy-android-app) (April 1, 2014)
 * [Internet Vandaag](http://www.bnr.nl/radio/bnr-internet-vandaag/708487-1404/internet-vandaag-74) (April 7, 2014)
+* [Protecting Your Privacy: App Ops, Privacy Guard, and XPrivacy](http://www.xda-developers.com/android/protecting-your-privacy-app-ops-privacy-guard-and-xprivacy/) (June 11, 2014)
 
 Contributing
 ------------

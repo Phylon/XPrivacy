@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Binder;
 import android.os.Build;
@@ -23,7 +22,6 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.XC_MethodHook;
 import static de.robv.android.xposed.XposedHelpers.findClass;
 
-@SuppressLint("DefaultLocale")
 public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 	private static String mSecret = null;
 
@@ -42,7 +40,9 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
 	// http://developer.android.com/reference/android/Manifest.permission.html
 
-	@SuppressLint("InlinedApi")
+	// Cydia Substrate
+	// https://github.com/M66B/XPrivacy/commit/30d47aec2a6d26957687eae73753a813c6213a20
+
 	public void initZygote(StartupParam startupParam) throws Throwable {
 		Util.log(null, Log.WARN, String.format("Load %s", startupParam.modulePath));
 
@@ -208,17 +208,6 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 		Util.log(hook, Log.INFO,
 				"getSystemService " + name + "=" + instance.getClass().getName() + " uid=" + Binder.getCallingUid());
 
-		if ("android.telephony.MSimTelephonyManager".equals(instance.getClass().getName())) {
-			Util.log(hook, Log.WARN, "Telephone service=" + Context.TELEPHONY_SERVICE);
-			Class<?> clazz = instance.getClass();
-			while (clazz != null) {
-				Util.log(hook, Log.WARN, "Class " + clazz);
-				for (Method method : clazz.getDeclaredMethods())
-					Util.log(hook, Log.WARN, "Declared " + method);
-				clazz = clazz.getSuperclass();
-			}
-		}
-
 		if (name.equals(Context.ACCOUNT_SERVICE)) {
 			// Account manager
 			if (!mAccountManagerHooked) {
@@ -270,13 +259,13 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 		} else if (name.equals(Context.WINDOW_SERVICE)) {
 			// Window manager
 			if (!mWindowManagerHooked) {
-				XPrivacy.hookAll(XWindowManager.getInstances(instance), mSecret);
+				hookAll(XWindowManager.getInstances(instance), mSecret);
 				mWindowManagerHooked = true;
 			}
 		} else if (name.equals(Context.WIFI_SERVICE)) {
 			// WiFi manager
 			if (!mWiFiManagerHooked) {
-				XPrivacy.hookAll(XWifiManager.getInstances(instance), mSecret);
+				hookAll(XWifiManager.getInstances(instance), mSecret);
 				mWiFiManagerHooked = true;
 			}
 		}
@@ -369,7 +358,6 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			// Find class
 			Class<?> hookClass = null;
 			try {
-				// hookClass = Class.forName(hook.getClassName());
 				hookClass = findClass(hook.getClassName(), classLoader);
 			} catch (Throwable ex) {
 				message = String.format("Class not found for %s", hook);
@@ -397,7 +385,7 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			}
 
 			// Hook members
-			for (Member member : listMember)
+			for (final Member member : listMember)
 				try {
 					if (Modifier.isAbstract(member.getModifiers()))
 						Util.log(hook, Log.ERROR, String.format("Abstract: %s", member));
@@ -420,53 +408,6 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 		} catch (Throwable ex) {
 			mListHookError.add(ex.toString());
 			Util.bug(hook, ex);
-		}
-	}
-
-	// WORKAROUND: when a native lib is loaded after hooking, the hook is undone
-
-	private static List<XC_MethodHook.Unhook> mUnhookNativeMethod = new ArrayList<XC_MethodHook.Unhook>();
-
-	@SuppressWarnings("unused")
-	private static void registerNativeMethod(final XHook hook, Method method, XC_MethodHook.Unhook unhook) {
-		if (Process.myUid() > 0) {
-			synchronized (mUnhookNativeMethod) {
-				mUnhookNativeMethod.add(unhook);
-				Util.log(hook, Log.INFO, "Native " + method + " uid=" + Process.myUid());
-			}
-		}
-	}
-
-	@SuppressWarnings("unused")
-	private static void hookCheckNative() {
-		try {
-			XC_MethodHook hook = new XC_MethodHook() {
-				@Override
-				protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-					if (Process.myUid() > 0)
-						try {
-							synchronized (mUnhookNativeMethod) {
-								Util.log(null, Log.INFO, "Loading " + param.args[0] + " uid=" + Process.myUid()
-										+ " count=" + mUnhookNativeMethod.size());
-								for (XC_MethodHook.Unhook unhook : mUnhookNativeMethod) {
-									XposedBridge.hookMethod(unhook.getHookedMethod(), unhook.getCallback());
-									unhook.unhook();
-								}
-							}
-						} catch (Throwable ex) {
-							Util.bug(null, ex);
-						}
-				}
-			};
-
-			Class<?> runtimeClass = Class.forName("java.lang.Runtime");
-			for (Method method : runtimeClass.getDeclaredMethods())
-				if (method.getName().equals("load") || method.getName().equals("loadLibrary")) {
-					XposedBridge.hookMethod(method, hook);
-					Util.log(null, Log.WARN, "Hooked " + method);
-				}
-		} catch (Throwable ex) {
-			Util.bug(null, ex);
 		}
 	}
 }

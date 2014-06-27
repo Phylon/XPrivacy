@@ -134,6 +134,7 @@
     <string name="title_set_restrict">Hạn chế</string>
     <string name="title_template_category">Áp dụng mẫu (các danh mục)</string>
     <string name="title_template_full">Áp dụng mẫu (các danh mục+các chức năng)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">Kích hoạt hạn chế theo yêu cầu truy cập</string>
     <string name="title_disable_ondemand">Tắt hạn chế theo yêu cầu truy cập</string>
     <string name="settings_serial">Serial#</string>
@@ -155,7 +156,6 @@
     <string name="settings_ondemand">Hạn chế theo yêu cầu truy cập dữ liệu</string>
     <string name="settings_log">Nhật ký lỗi (cần khởi động lại ứng dụng)</string>
     <string name="settings_expert">Chế độ nâng cao</string>
-    <string name="settings_dangerous">Hạn chế các chức năng nguy hiểm</string>
     <string name="settings_confidence">Tối đa khoảng thời gian lấy về các thiết lập</string>
     <string name="settings_experimental">Các chức năng thử nghiệm (Yêu cầu khởi động lại ứng dụng)</string>
     <string name="settings_https">Sử dụng các kết nối được bảo mật</string>

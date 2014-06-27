@@ -135,6 +135,7 @@ il est impossible de garantir un fonctionnement parfait sur chaque appareil et p
     <string name="title_set_restrict">Restreindre la sélection</string>
     <string name="title_template_category">Appliquer le modèle (seulement les catégories)</string>
     <string name="title_template_full">Appliquer tout le modèle (catégories et fonctions)</string>
+    <string name="title_template_merge">Apply template (merge)</string>
     <string name="title_enable_ondemand">\t\t\t\tActiver \"restreindre sur demande\"</string>
     <string name="title_disable_ondemand">\t\t\t\tDésactiver \"restreindre sur demande\"</string>
     <string name="settings_serial">N° de série</string>
@@ -156,7 +157,6 @@ il est impossible de garantir un fonctionnement parfait sur chaque appareil et p
     <string name="settings_ondemand">Restrictions sur demande</string>
     <string name="settings_log">Debug log (redémarrage requis)</string>
     <string name="settings_expert">Mode expert</string>
-    <string name="settings_dangerous">Restreindre fonctions dangereuses</string>
     <string name="settings_confidence">Intervalle de confiance maximum</string>
     <string name="settings_experimental">Fonctions expérimentales (redémarrage requis)</string>
     <string name="settings_https">Utiliser des connexions sécurisée</string>

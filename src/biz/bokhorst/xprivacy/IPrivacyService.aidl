@@ -12,6 +12,7 @@ interface IPrivacyService {
 	void setRestrictionList(in List<PRestriction> listRestriction);
 	PRestriction getRestriction(in PRestriction restriction, boolean usage, String secret);
 	List<PRestriction> getRestrictionList(in PRestriction selector);
+	boolean isRestrictionSet(in PRestriction restriction);
 	void deleteRestrictions(int uid, String restrictionName);
 
 	long getUsage(in List<PRestriction> restriction);
@@ -21,7 +22,7 @@ interface IPrivacyService {
 	void setSetting(in PSetting setting);
 	void setSettingList(in List<PSetting> listSetting);
 	PSetting getSetting(in PSetting setting);
-	List<PSetting> getSettingList(int uid);
+	List<PSetting> getSettingList(in PSetting selector);
 	void deleteSettings(int uid);
 
 	void clear();
