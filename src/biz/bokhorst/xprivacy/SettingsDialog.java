@@ -53,9 +53,10 @@ public class SettingsDialog {
 		final LinearLayout llConfidence = (LinearLayout) dlgSettings.findViewById(R.id.llConfidence);
 		final EditText etConfidence = (EditText) dlgSettings.findViewById(R.id.etConfidence);
 
-		final Button btnClear = (Button) dlgSettings.findViewById(R.id.btnClear);
 		final CheckBox cbRandom = (CheckBox) dlgSettings.findViewById(R.id.cbRandom);
 		final Button btnRandom = (Button) dlgSettings.findViewById(R.id.btnRandom);
+		final Button btnClear = (Button) dlgSettings.findViewById(R.id.btnClear);
+		final Button btnFlush = (Button) dlgSettings.findViewById(R.id.btnFlush);
 
 		final EditText etSerial = (EditText) dlgSettings.findViewById(R.id.etSerial);
 		final EditText etLat = (EditText) dlgSettings.findViewById(R.id.etLat);
@@ -232,13 +233,12 @@ public class SettingsDialog {
 		String confidence = PrivacyManager.getSetting(uid, PrivacyManager.cSettingConfidence, "", false);
 		final boolean expert = (components || dangerous || experimental || !https || !"".equals(confidence));
 
-		// Common
-		boolean random = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingRandom, false, false);
-
 		// Application specific
 		boolean notify = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingNotify, true, false);
-		final boolean ondemand = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingOnDemand, uid == userId,
-				false);
+		boolean ondemand = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingOnDemand, uid == userId, false);
+
+		// Common
+		boolean random = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingRandom, false, false);
 
 		String serial = PrivacyManager.getSetting(-uid, PrivacyManager.cSettingSerial, "", false);
 		String lat = PrivacyManager.getSetting(-uid, PrivacyManager.cSettingLatitude, "", false);
@@ -256,9 +256,6 @@ public class SettingsDialog {
 
 		// Set current values
 		if (uid == userId) {
-			// Disable app settings
-			cbNotify.setVisibility(View.GONE);
-
 			// Global settings
 			cbUsage.setChecked(usage);
 			cbParameters.setChecked(parameters);
@@ -293,10 +290,13 @@ public class SettingsDialog {
 			cbExperimental.setVisibility(View.GONE);
 			cbHttps.setVisibility(View.GONE);
 			llConfidence.setVisibility(View.GONE);
-
-			// Application specific settings
-			cbNotify.setChecked(notify);
 		}
+
+		boolean gnotify = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingNotify, true, false);
+		if (uid == userId || gnotify)
+			cbNotify.setChecked(notify);
+		else
+			cbNotify.setVisibility(View.GONE);
 
 		boolean gondemand = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingOnDemand, true, false);
 		if (uid == userId || (PrivacyManager.isApplication(uid) && gondemand))
@@ -399,19 +399,6 @@ public class SettingsDialog {
 			}
 		});
 
-		// Handle clear
-		btnClear.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				for (EditText edit : edits)
-					edit.setText("");
-				etSearch.setText("");
-
-				for (CheckBox box : boxes)
-					box.setChecked(false);
-			}
-		});
-
 		// Handle manual randomize
 		btnRandom.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -431,6 +418,32 @@ public class SettingsDialog {
 				etSSID.setText(PrivacyManager.getRandomProp("SSID"));
 			}
 		});
+
+		// Handle clear
+		btnClear.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				for (EditText edit : edits)
+					edit.setText("");
+				etSearch.setText("");
+
+				for (CheckBox box : boxes)
+					box.setChecked(false);
+			}
+		});
+
+		// Handle flush
+		if (uid == 0)
+			btnFlush.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					Intent flushIntent = new Intent(UpdateService.cFlush);
+					context.startService(flushIntent);
+					Toast.makeText(context, context.getString(R.string.msg_done), Toast.LENGTH_SHORT).show();
+				}
+			});
+		else
+			btnFlush.setVisibility(View.GONE);
 
 		// Handle OK
 		btnOk.setOnClickListener(new View.OnClickListener() {
@@ -453,12 +466,12 @@ public class SettingsDialog {
 					PrivacyManager.setSetting(uid, PrivacyManager.cSettingHttps, Boolean.toString(cbHttps.isChecked()));
 					PrivacyManager
 							.setSetting(uid, PrivacyManager.cSettingConfidence, etConfidence.getText().toString());
-				} else {
-					// App specific settings
-					PrivacyManager.setSetting(uid, PrivacyManager.cSettingNotify,
-							Boolean.toString(cbNotify.isChecked()));
 				}
 
+				// Notifications
+				PrivacyManager.setSetting(uid, PrivacyManager.cSettingNotify, Boolean.toString(cbNotify.isChecked()));
+
+				// On demand restricting
 				if (uid == userId || PrivacyManager.isApplication(uid))
 					PrivacyManager.setSetting(uid, PrivacyManager.cSettingOnDemand,
 							Boolean.toString(cbOnDemand.isChecked()));

@@ -50,6 +50,7 @@
     <string name="menu_tutorial">Tutorial</string>
     <string name="menu_exclude">Exclude</string>
     <string name="menu_close">Close</string>
+    <string name="menu_flush">Flush cache</string>
     <string name="msg_abort">Aborting</string>
     <string name="msg_aborted">Aborted</string>
     <string name="msg_new">New</string>
@@ -143,8 +144,8 @@ however it is impossible to guarantee it will work flawlessly on each and every 
     <string name="title_set_restrict">Restrict</string>
     <string name="title_template_category">Apply template (categories)</string>
     <string name="title_template_full">Apply template (categories+functions)</string>
-    <string name="title_enable_ondemand">Enable on demand restricting</string>
-    <string name="title_disable_ondemand">Disable on demand restricting</string>
+    <string name="title_enable_ondemand">\t\t\t\tEnable on demand restricting</string>
+    <string name="title_disable_ondemand">\t\t\t\tDisable on demand restricting</string>
     <string name="settings_serial">Serial#</string>
     <string name="settings_lat">Latitude</string>
     <string name="settings_lon">Longitude</string>
@@ -199,6 +200,7 @@ however it is impossible to guarantee it will work flawlessly on each and every 
     <string name="tutorial_detailsheader">Tap the app icon for more actions</string>
     <string name="tutorial_detailslist">Tap the down arrow to see the function exceptions of a restriction category</string>
     <string name="permission_manage">Manage applications, including killing</string>
+    <string name="permission_restrictions">Manage XPrivacy restrictions and settings</string>
     <string name="fingerprint" translatable="false">10620ae961d78854f6c9cd872c4388232849c799</string>
 
 </resources>

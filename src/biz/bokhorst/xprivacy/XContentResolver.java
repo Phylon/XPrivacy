@@ -120,29 +120,34 @@ public class XContentResolver extends XHook {
 			if (uri.startsWith("content://com.android.contacts/contacts/name_phone_or_email")) {
 				// Do nothing
 
-			} else if (uri.startsWith("content://com.android.contacts/contacts")
-					|| uri.startsWith("content://com.android.contacts/data")
-					|| uri.startsWith("content://com.android.contacts/phone_lookup")
-					|| uri.startsWith("content://com.android.contacts/raw_contacts")) {
+			} else if (uri.startsWith("content://com.android.contacts/")
+					&& !uri.equals("content://com.android.contacts/")) {
 				String[] components = uri.replace("content://com.android.", "").split("/");
 				String methodName = components[0] + "/" + components[1].split("\\?")[0];
+				if (methodName.equals("contacts/contacts") || methodName.equals("contacts/data")
+						|| methodName.equals("contacts/phone_lookup") || methodName.equals("contacts/raw_contacts"))
+					if (isRestrictedExtra(param, PrivacyManager.cContacts, methodName, uri)) {
+						// Get ID from URL if any
+						int urlid = -1;
+						if ((methodName.equals("contacts/contacts") || methodName.equals("contacts/phone_lookup"))
+								&& components.length > 2 && TextUtils.isDigitsOnly(components[2]))
+							urlid = Integer.parseInt(components[2]);
 
-				if (isRestrictedExtra(param, PrivacyManager.cContacts, methodName, uri)) {
-					// Modify projection
-					boolean added = false;
-					if (projection != null) {
-						List<String> listProjection = new ArrayList<String>();
-						listProjection.addAll(Arrays.asList(projection));
-						String cid = getIdForUri(uri);
-						if (cid != null && !listProjection.contains(cid)) {
-							added = true;
-							listProjection.add(cid);
+						// Modify projection
+						boolean added = false;
+						if (projection != null && urlid < 0) {
+							List<String> listProjection = new ArrayList<String>();
+							listProjection.addAll(Arrays.asList(projection));
+							String cid = getIdForUri(uri);
+							if (cid != null && !listProjection.contains(cid)) {
+								added = true;
+								listProjection.add(cid);
+							}
+							param.args[1] = listProjection.toArray(new String[0]);
 						}
-						param.args[1] = listProjection.toArray(new String[0]);
+						if (added)
+							param.setObjectExtra("column_added", added);
 					}
-					if (added)
-						param.setObjectExtra("column_added", added);
-				}
 			}
 		}
 	}
@@ -199,48 +204,71 @@ public class XContentResolver extends XHook {
 				}
 
 			} else if (uri.startsWith("content://com.android.contacts/contacts/name_phone_or_email")) {
+
 				// Do nothing
 
-			} else if (uri.startsWith("content://com.android.contacts/contacts")
-					|| uri.startsWith("content://com.android.contacts/data")
-					|| uri.startsWith("content://com.android.contacts/phone_lookup")
-					|| uri.startsWith("content://com.android.contacts/raw_contacts")) {
+			} else if (uri.startsWith("content://com.android.contacts/")
+					&& !uri.equals("content://com.android.contacts/")) {
 				// Contacts provider: allow selected contacts
 				String[] components = uri.replace("content://com.android.", "").split("/");
 				String methodName = components[0] + "/" + components[1].split("\\?")[0];
-				if (isRestrictedExtra(param, PrivacyManager.cContacts, methodName, uri)) {
-					// Modify column names back
-					Object column_added = param.getObjectExtra("column_added");
-					boolean added = (column_added == null ? false : (Boolean) param.getObjectExtra("column_added"));
+				if (methodName.equals("contacts/contacts") || methodName.equals("contacts/data")
+						|| methodName.equals("contacts/phone_lookup") || methodName.equals("contacts/raw_contacts")) {
+					if (isRestrictedExtra(param, PrivacyManager.cContacts, methodName, uri)) {
+						// Get ID from URL if any
+						int urlid = -1;
+						if ((methodName.equals("contacts/contacts") || methodName.equals("contacts/phone_lookup"))
+								&& components.length > 2 && TextUtils.isDigitsOnly(components[2]))
+							urlid = Integer.parseInt(components[2]);
 
-					List<String> listColumn = new ArrayList<String>();
-					listColumn.addAll(Arrays.asList(cursor.getColumnNames()));
-					if (added)
-						listColumn.remove(listColumn.size() - 1);
+						// Modify column names back
+						Object column_added = param.getObjectExtra("column_added");
+						boolean added = (column_added == null ? false : (Boolean) param.getObjectExtra("column_added"));
 
-					MatrixCursor result = new MatrixCursor(listColumn.toArray(new String[0]));
+						List<String> listColumn = new ArrayList<String>();
+						listColumn.addAll(Arrays.asList(cursor.getColumnNames()));
+						if (added)
+							listColumn.remove(listColumn.size() - 1);
 
-					// Filter rows
-					String cid = getIdForUri(uri);
-					int iid = (cid == null ? -1 : cursor.getColumnIndex(cid));
-					if (iid >= 0)
-						while (cursor.moveToNext()) {
-							// Check if allowed
-							long id = cursor.getLong(iid);
-							boolean allowed = PrivacyManager.getSettingBool(-Binder.getCallingUid(), Meta.cTypeContact,
-									Long.toString(id), false, true);
-							if (allowed)
-								copyColumns(cursor, result, listColumn.size());
-						}
+						MatrixCursor result = new MatrixCursor(listColumn.toArray(new String[0]));
+
+						// Filter rows
+						String cid = getIdForUri(uri);
+						int iid = (cid == null ? -1 : cursor.getColumnIndex(cid));
+						if (iid >= 0 || urlid >= 0)
+							while (cursor.moveToNext()) {
+								// Check if allowed
+								long id = (urlid >= 0 ? urlid : cursor.getLong(iid));
+								boolean allowed = PrivacyManager.getSettingBool(-Binder.getCallingUid(),
+										Meta.cTypeContact, Long.toString(id), false, true);
+								if (allowed)
+									copyColumns(cursor, result, listColumn.size());
+							}
+						else
+							Util.log(this, Log.WARN, "ID missing URI=" + uri + " added=" + added + "/" + cid
+									+ " columns=" + TextUtils.join(",", cursor.getColumnNames()) + " projection="
+									+ (projection == null ? "null" : TextUtils.join(",", projection)) + " selection="
+									+ selection);
+
+						result.respond(cursor.getExtras());
+						param.setResult(result);
+						cursor.close();
+					}
+				} else {
+					methodName = null;
+					if (uri.startsWith("content://com.android.contacts/profile"))
+						methodName = "contacts/profile";
 					else
-						Util.log(this, Log.WARN, "ID missing URI=" + uri + " added=" + added + "/" + cid + " columns="
-								+ TextUtils.join(",", cursor.getColumnNames()) + " projection="
-								+ (projection == null ? "null" : TextUtils.join(",", projection)) + " selection="
-								+ selection);
+						methodName = "ContactsProvider2"; // fall-back
 
-					result.respond(cursor.getExtras());
-					param.setResult(result);
-					cursor.close();
+					if (methodName != null)
+						if (isRestrictedExtra(param, PrivacyManager.cContacts, methodName, uri)) {
+							// Return empty cursor
+							MatrixCursor result = new MatrixCursor(cursor.getColumnNames());
+							result.respond(cursor.getExtras());
+							param.setResult(result);
+							cursor.close();
+						}
 				}
 
 			} else {
@@ -265,16 +293,6 @@ public class XContentResolver extends XHook {
 				else if (uri.startsWith("content://contacts/people")) {
 					restrictionName = PrivacyManager.cContacts;
 					methodName = "contacts/people";
-				}
-
-				else if (uri.startsWith("content://com.android.contacts/profile")) {
-					restrictionName = PrivacyManager.cContacts;
-					methodName = "contacts/profile";
-				}
-
-				else if (uri.startsWith("content://com.android.contacts")) {
-					restrictionName = PrivacyManager.cContacts;
-					methodName = "ContactsProvider2"; // fall-back
 				}
 
 				else if (uri.startsWith("content://downloads")) {

@@ -19,6 +19,7 @@ public class PackageChange extends BroadcastReceiver {
 			if (inputUri.getScheme().equals("package")) {
 				// Get data
 				int uid = intent.getIntExtra(Intent.EXTRA_UID, 0);
+				int userId = Util.getUserId(uid);
 				boolean replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false);
 				NotificationManager notificationManager = (NotificationManager) context
 						.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -38,12 +39,11 @@ public class PackageChange extends BroadcastReceiver {
 							PrivacyManager.clearPermissionCache(uid);
 						else {
 							// Delete existing restrictions
-							PrivacyManager.deleteRestrictions(uid, null, false);
+							PrivacyManager.deleteRestrictions(uid, null, true);
 							PrivacyManager.deleteSettings(uid);
 							PrivacyManager.deleteUsage(uid);
 							PrivacyManager.clearPermissionCache(uid);
 
-							int userId = Util.getUserId(uid);
 							boolean ondemand = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingOnDemand,
 									true, false);
 
@@ -62,7 +62,9 @@ public class PackageChange extends BroadcastReceiver {
 							Integer.toString(ActivityMain.STATE_ATTENTION));
 
 					// New/update notification
-					boolean notify = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingNotify, true, false);
+					boolean notify = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingNotify, true, false);
+					if (notify)
+						notify = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingNotify, true, false);
 					if (!replacing || notify) {
 						Intent resultIntent = new Intent(context, ActivityApp.class);
 						resultIntent.putExtra(ActivityApp.cUid, uid);

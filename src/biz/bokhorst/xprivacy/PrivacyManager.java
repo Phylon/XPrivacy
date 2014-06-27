@@ -250,24 +250,25 @@ public class PrivacyManager {
 		if (uid <= 0)
 			return false;
 		if (secret == null) {
-			Util.log(null, Log.WARN, "Secret null");
+			Util.log(null, Log.ERROR, "Secret null");
+			Util.logStack(hook, Log.ERROR);
 			secret = "";
 		}
 
 		// Check restriction
 		if (restrictionName == null || restrictionName.equals("")) {
-			Util.log(hook, Log.WARN, "restriction empty method=" + methodName);
-			Util.logStack(hook, Log.WARN);
+			Util.log(hook, Log.ERROR, "restriction empty method=" + methodName);
+			Util.logStack(hook, Log.ERROR);
 			return false;
 		}
 
 		// Check usage
 		if (methodName == null || methodName.equals("")) {
-			Util.log(hook, Log.WARN, "Method empty");
-			Util.logStack(hook, Log.WARN);
+			Util.log(hook, Log.ERROR, "Method empty");
+			Util.logStack(hook, Log.ERROR);
 		} else if (getHook(restrictionName, methodName) == null) {
-			Util.log(hook, Log.WARN, "Unknown method=" + methodName);
-			Util.logStack(hook, Log.WARN);
+			Util.log(hook, Log.ERROR, "Unknown method=" + methodName);
+			Util.logStack(hook, Log.ERROR);
 		}
 
 		// Check extra
@@ -348,7 +349,8 @@ public class PrivacyManager {
 				for (String rRestrictionName : listRestriction)
 					for (Hook md : getHooks(rRestrictionName))
 						if (md.isDangerous())
-							listPRestriction.add(new PRestriction(uid, rRestrictionName, md.getName(), false, true));
+							listPRestriction.add(new PRestriction(uid, rRestrictionName, md.getName(), false, md
+									.whitelist() == null));
 		}
 
 		setRestrictionList(listPRestriction);
@@ -449,6 +451,8 @@ public class PrivacyManager {
 		// Apply template
 		List<PRestriction> listPRestriction = new ArrayList<PRestriction>();
 		for (String rRestrictionName : listRestriction) {
+			deleteRestrictions(uid, rRestrictionName, false);
+
 			// Parent
 			String parentValue = getSetting(userId, Meta.cTypeTemplate, rRestrictionName, Boolean.toString(!ondemand)
 					+ "+ask", false);
@@ -464,9 +468,10 @@ public class PrivacyManager {
 							Boolean.toString(parentRestricted && (hook.isDangerous() ? dangerous : true))
 									+ (parentAsked ? "+asked" : "+ask"), false);
 					boolean restricted = value.contains("true");
-					boolean asked = value.contains("asked");
-					listPRestriction.add(new PRestriction(uid, rRestrictionName, hook.getName(), parentRestricted
-							&& restricted, parentAsked || asked || !ondemand));
+					boolean asked = (!ondemand || value.contains("asked"));
+					if ((parentRestricted && !restricted) || (!parentAsked && asked) || hook.whitelist() != null)
+						listPRestriction.add(new PRestriction(uid, rRestrictionName, hook.getName(), parentRestricted
+								&& restricted, parentAsked || asked));
 				}
 		}
 		setRestrictionList(listPRestriction);
@@ -545,6 +550,11 @@ public class PrivacyManager {
 	}
 
 	// Settings
+
+	public static String getSalt(int userId) {
+		String def = (Build.SERIAL == null ? "" : Build.SERIAL);
+		return getSetting(userId, PrivacyManager.cSettingSalt, def, true);
+	}
 
 	public static boolean getSettingBool(int uid, String name, boolean defaultValue, boolean useCache) {
 		return Boolean.parseBoolean(getSetting(uid, name, Boolean.toString(defaultValue), useCache));
@@ -744,26 +754,26 @@ public class PrivacyManager {
 		if (name.equals("getIsimImpu"))
 			return null;
 
-		if (name.equals("getNetworkCountryIso") || name.equals("gsm.operator.iso-country")) {
+		if (name.equals("getNetworkCountryIso")) {
 			// ISO country code
 			String value = getSetting(uid, cSettingCountry, "XX", true);
 			return (cValueRandom.equals(value) ? getRandomProp("ISO3166") : value);
 		}
-		if (name.equals("getNetworkOperator") || name.equals("gsm.operator.numeric"))
+		if (name.equals("getNetworkOperator"))
 			// MCC+MNC: test network
 			return getSetting(uid, cSettingMcc, "001", true) + getSetting(uid, cSettingMnc, "01", true);
-		if (name.equals("getNetworkOperatorName") || name.equals("gsm.operator.alpha"))
+		if (name.equals("getNetworkOperatorName"))
 			return getSetting(uid, cSettingOperator, cDeface, true);
 
-		if (name.equals("getSimCountryIso") || name.equals("gsm.sim.operator.iso-country")) {
+		if (name.equals("getSimCountryIso")) {
 			// ISO country code
 			String value = getSetting(uid, cSettingCountry, "XX", true);
 			return (cValueRandom.equals(value) ? getRandomProp("ISO3166") : value);
 		}
-		if (name.equals("getSimOperator") || name.equals("gsm.sim.operator.numeric"))
+		if (name.equals("getSimOperator"))
 			// MCC+MNC: test network
 			return getSetting(uid, cSettingMcc, "001", true) + getSetting(uid, cSettingMnc, "01", true);
-		if (name.equals("getSimOperatorName") || name.equals("gsm.sim.operator.alpha"))
+		if (name.equals("getSimOperatorName"))
 			return getSetting(uid, cSettingOperator, cDeface, true);
 
 		if (name.equals("getSimSerialNumber") || name.equals("getIccSerialNumber"))
@@ -875,7 +885,8 @@ public class PrivacyManager {
 			}
 
 		// Fallback
-		Util.log(null, Log.WARN, "Fallback value name=" + name);
+		Util.log(null, Log.ERROR, "Fallback value name=" + name);
+		Util.logStack(null, Log.ERROR);
 		return cDeface;
 	}
 

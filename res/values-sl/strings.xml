@@ -45,6 +45,7 @@
     <string name="menu_tutorial">Navodila</string>
     <string name="menu_exclude">Izključi</string>
     <string name="menu_close">Zapri</string>
+    <string name="menu_flush">Flush cache</string>
     <string name="msg_abort">Preklicujem</string>
     <string name="msg_aborted">Preklicano</string>
     <string name="msg_new">Novo</string>
@@ -72,8 +73,8 @@
     <string name="msg_upgrading">Nadgrajujem %1$s</string>
     <string name="msg_support_info">Napaka pri notranjem preverjanju, želite poslati podatke podpori?</string>
     <string name="msg_restrictedby">Omejeno z XPrivacy</string>
-    <string name="msg_service_missing">Privacy service not found; did you enable XPrivacy in the Xposed installer and reboot your device?</string>
-    <string name="msg_service_version">Privacy service version mismatch; did you reboot your device after upgrading XPrivacy?</string>
+    <string name="msg_service_missing">Storitev za zasebnost ni bila najdena; ste omogočili XPrivacy v programu Xposed installer in ponovno zagnali Vašo napravo?</string>
+    <string name="msg_service_version">Različica storitve za zasebnost se ne ujema; ste zagnali ponovno Vašo napravo po nadgradnji programa XPrivacy?</string>
     <string name="msg_first"><b>Za razvoj in preizkušanje programa XPrivacy je bilo vloženo veliko truda, vendar pa
     je nemogoče zagotoviti brezhibno delovanje na vsaki napravi in za vsak program.\n\nUporaba programa je na lastno
     odgovornost</b>\n\nPreberite si tudi licenco:</string>
@@ -184,5 +185,6 @@
     <string name="tutorial_detailsheader">Tapni ikono aplikacije za več možnosti</string>
     <string name="tutorial_detailslist">Tapni puščico navzdol za pregled izjem funkcij v omejeni kategoriji</string>
     <string name="permission_manage">Upravljaj programe, vključno z ubijanjem(programov)</string>
+    <string name="permission_restrictions">Manage XPrivacy restrictions and settings</string>
 
 </resources>

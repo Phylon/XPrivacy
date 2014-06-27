@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.lang.RuntimeException;
 import java.nio.channels.FileChannel;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -33,7 +34,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Process;
 import android.os.RemoteException;
-import android.os.UserHandle;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -89,13 +89,17 @@ public class Util {
 
 	public static void bug(XHook hook, Throwable ex) {
 		int priority;
-		if (ex instanceof OutOfMemoryError)
+		if (ex instanceof RuntimeException)
+			priority = Log.WARN;
+		else if (ex instanceof OutOfMemoryError)
 			priority = Log.WARN;
 		else if (ex instanceof ActivityShare.AbortException)
 			priority = Log.WARN;
 		else if (ex instanceof ActivityShare.ServerException)
 			priority = Log.WARN;
 		else if (ex instanceof NoClassDefFoundError)
+			priority = Log.WARN;
+		else if (ex instanceof SecurityException)
 			priority = Log.WARN;
 		else
 			priority = Log.ERROR;
@@ -192,7 +196,8 @@ public class Util {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 			try {
 				// UserHandle: public static final int getAppId(int uid)
-				Method method = (Method) UserHandle.class.getDeclaredMethod("getAppId", int.class);
+				Class<?> clazz = Class.forName("android.os.UserHandle");
+				Method method = (Method) clazz.getDeclaredMethod("getAppId", int.class);
 				uid = (Integer) method.invoke(null, uid);
 			} catch (Throwable ex) {
 				Util.log(null, Log.WARN, ex.toString());
@@ -207,7 +212,8 @@ public class Util {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 				try {
 					// UserHandle: public static final int getUserId(int uid)
-					Method method = (Method) UserHandle.class.getDeclaredMethod("getUserId", int.class);
+					Class<?> clazz = Class.forName("android.os.UserHandle");
+					Method method = (Method) clazz.getDeclaredMethod("getUserId", int.class);
 					userId = (Integer) method.invoke(null, uid);
 				} catch (Throwable ex) {
 					Util.log(null, Log.WARN, ex.toString());
@@ -236,6 +242,33 @@ public class Util {
 		if (!licenseFile.exists())
 			licenseFile = new File(storageDir + File.separator + ".xprivacy" + File.separator + LICENSE_FILE_NAME);
 
+		String importedLicense = importProLicense(licenseFile);
+
+		// Check license file
+		licenseFile = new File(importedLicense);
+		if (licenseFile.exists()) {
+			// Read license
+			try {
+				IniFile iniFile = new IniFile(licenseFile);
+				String name = iniFile.get("name", "");
+				String email = iniFile.get("email", "");
+				String signature = iniFile.get("signature", "");
+				if (name == null || email == null || signature == null)
+					return null;
+				else
+					return new String[] { name, email, signature };
+			} catch (FileNotFoundException ex) {
+				return null;
+			} catch (Throwable ex) {
+				bug(null, ex);
+				return null;
+			}
+		} else
+			Util.log(null, Log.INFO, "Licensing: no license file");
+		return null;
+	}
+
+	public static String importProLicense(File licenseFile) {
 		// Get imported license file name
 		String importedLicense = getUserDataDirectory(Process.myUid()) + File.separator + LICENSE_FILE_NAME;
 
@@ -263,26 +296,7 @@ public class Util {
 				Util.bug(null, ex);
 			}
 		}
-
-		// Check license file
-		licenseFile = new File(importedLicense);
-		if (licenseFile.exists()) {
-			// Read license
-			try {
-				IniFile iniFile = new IniFile(licenseFile);
-				String name = iniFile.get("name", "");
-				String email = iniFile.get("email", "");
-				String signature = iniFile.get("signature", "");
-				return new String[] { name, email, signature };
-			} catch (FileNotFoundException ex) {
-				return null;
-			} catch (Throwable ex) {
-				bug(null, ex);
-				return null;
-			}
-		} else
-			Util.log(null, Log.INFO, "Licensing: no license file");
-		return null;
+		return importedLicense;
 	}
 
 	public static Version getProEnablerVersion(Context context) {
@@ -420,7 +434,7 @@ public class Util {
 	public static String sha1(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		// SHA1
 		int userId = Util.getUserId(Process.myUid());
-		String salt = PrivacyManager.getSetting(userId, PrivacyManager.cSettingSalt, "", true);
+		String salt = PrivacyManager.getSalt(userId);
 		MessageDigest digest = MessageDigest.getInstance("SHA-1");
 		byte[] bytes = (text + salt).getBytes("UTF-8");
 		digest.update(bytes, 0, bytes.length);
@@ -434,7 +448,7 @@ public class Util {
 	public static String md5(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		// MD5
 		int userId = Util.getUserId(Process.myUid());
-		String salt = PrivacyManager.getSetting(userId, PrivacyManager.cSettingSalt, "", true);
+		String salt = PrivacyManager.getSalt(userId);
 		byte[] bytes = MessageDigest.getInstance("MD5").digest((text + salt).getBytes("UTF-8"));
 		StringBuilder sb = new StringBuilder();
 		for (byte b : bytes)

@@ -90,14 +90,24 @@ OR
 
 **Using XPrivacy is entirely at your own risk**
 
-![Applications](https://raw.github.com/M66B/XPrivacy/master/screenshots/applications.png)
-![Categories](https://raw.github.com/M66B/XPrivacy/master/screenshots/categories.png)
-![Application](https://raw.github.com/M66B/XPrivacy/master/screenshots/application.png)
-![Expert](https://raw.github.com/M66B/XPrivacy/master/screenshots/expert.png)
-![Help](https://raw.github.com/M66B/XPrivacy/master/screenshots/help.png)
-![Settings](https://raw.github.com/M66B/XPrivacy/master/screenshots/settings.png)
-![Usage data](https://raw.github.com/M66B/XPrivacy/master/screenshots/usagedata.png)
-![Menu](https://raw.github.com/M66B/XPrivacy/master/screenshots/menu.png)
+<img src="screenshots/categories.png" width="232" hspace="4"/>
+<img src="screenshots/applications.png" width="232" hspace="4"/>
+<img src="screenshots/application.png" width="232" hspace="4"/>
+<img src="screenshots/expert.png" width="232" hspace="4"/>
+<img src="screenshots/expert-2.png" width="232" hspace="4"/>
+<img src="screenshots/help.png" width="232" hspace="4"/>
+<img src="screenshots/settings.png" width="232" hspace="4"/>
+<img src="screenshots/settings-2.png" width="232" hspace="4"/>
+<img src="screenshots/settings-3.png" width="232" hspace="4"/>
+<img src="screenshots/usagedata.png" width="232" hspace="4"/>
+<img src="screenshots/menu.png" width="232" hspace="4"/>
+<img src="screenshots/sort.png" width="232" hspace="4"/>
+<img src="screenshots/filter.png" width="232" hspace="4"/>
+<img src="screenshots/template.png" width="232" hspace="4"/>
+<img src="screenshots/toggle.png" width="232" hspace="4"/>
+<img src="screenshots/on-demand-dialogue.png" width="232" hspace="4"/>
+<img src="screenshots/whitelist.png" width="232" hspace="4"/>
+<img src="screenshots/about.png" width="232" hspace="4"/>
 
 Features
 --------
@@ -202,7 +212,7 @@ For easy usage, data is restricted by category:
 		* Cell location changed
 	* prevent sending extra commands (aGPS data)
 	* return an empty list of Wi-Fi scan results
-	* prevents connecting to Google Play services
+	* prevent [activity recognition](http://developer.android.com/training/location/activity-recognition.html)
 <a name="media"></a>
 * Media
 	* prevent recording audio
@@ -299,7 +309,7 @@ Limitations
 -----------
 
 * [/proc](http://linux.die.net/man/5/proc), CID and system (build) properties cannot be restricted for Android (serial number, IMEI, MAC address, etc), because restricting these will result in bootloops
-* /proc/self/cmdline will not be restricted by /proc, because it will result in instability
+* */proc/self/cmdline* will not be restricted by */proc*, because it will result in instability
 * The phone number cannot be restricted for the standard phone application
 * The browser bookmarks and history cannot be restricted for the browser itself
 * Internet and storage can only be restricted for applications, providers, and services started by the Android package manager
@@ -307,18 +317,21 @@ Limitations
 * Because it is static, [Build.SERIAL](http://developer.android.com/reference/android/os/Build.html#SERIAL) can only be randomized when an application starts, and there is no usage data
 * Due to a bug in Chromium, the user agent cannot be restricted in all cases ([issue](https://github.com/M66B/XPrivacy/issues/825))
 * Due to a custom implementation, the clipboard cannot be restricted on some Samsung stock ROMs ([issue](https://github.com/M66B/XPrivacy/issues/857))
-* It is not possible to restrict hardware MAC addresses or the external IP address
-* You cannot restrict the Android ID for XPrivacy because it is used for submitting restrictions
-* You cannot restrict *IPC* for XPrivacy because it is needed for internal checks
-* You cannot restrict *storage* for XPrivacy because it is needed to read the XPrivacy Pro license file
-* You cannot restrict *system* for XPrivacy because it is needed to get an application list
-* You cannot restrict *view* for XPrivacy because it is needed to open links to the crowd sourced restrictions
+* It is not possible to restrict external hardware MAC addresses or the external IP address
 * You cannot restrict *Configuration.MCC/MNC* on demand
 * Allowing contacts for SIM-contacts isn't supported (who is using these anyway these days?)
 * The on demand restricting dialog does sometimes not respond and is sometimes hidden
 	* A known situation is starting an application from a notification for the restrictions *inet*, *sdcard* and *media*
+	* Another known situation are some restrictions triggered by hardware buttons, like the volume buttons
 	* This cannot be fixed, because the on demand dialog is locking a system process
 	* The on demand dialog will timeout after 20 seconds, so this is not a major problem
+* You cannot restrict the serial number and the Android ID for XPrivacy, because it is used for submitting restrictions
+	* The Android ID is salted with the serial number and MD5 hashed before communicating with the crowd sourced restrictions server
+	* This means that the crowd sourced restrictions server never gets the serial number nor the Android ID
+* You cannot restrict *IPC* for XPrivacy because it is needed for internal checks
+* You cannot restrict *storage* for XPrivacy because it is needed to read the XPrivacy Pro license file
+* You cannot restrict *system* for XPrivacy because it is needed to get an application list
+* You cannot restrict *view* for XPrivacy because it is needed to open links to the [crowd sourced restrictions](http://crowd.xprivacy.eu/)
 
 You can still restrict the XPrivacy app's access to accounts, contacts, and other things.
 
@@ -328,7 +341,14 @@ Compatibility
 XPrivacy has been tested with Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat)
 and is reported to work with most Android variants, including stock ROMs.
 
-**XPrivacy is not compatible with LBE Security Master**  ([issue](https://github.com/M66B/XPrivacy/issues/1231))
+**XPrivacy is incompatible with LBE Security Master** ([issue](https://github.com/M66B/XPrivacy/issues/1231))
+
+XPrivacy seems to be incompatible with [OLYMPUS Image Share](https://play.google.com/store/apps/details?id=jp.olympusimaging.oishare)
+for unknown reasons ([issue](https://github.com/M66B/XPrivacy/issues/1607)).
+
+XPrivacy seems to cause camera lag on a Samsung Galaxy Note II ([issue](https://github.com/M66B/XPrivacy/issues/715))
+
+Restricting *Internet/connect* and/or *View/loadURL* for the stock browser doesn't prevent loading of pages ([issue](https://github.com/M66B/XPrivacy/issues/1685))
 
 Installation
 ------------
@@ -339,7 +359,6 @@ Installation may seem lengthy, but you can actually do it quickly:
 
 1. Requirements:
 	* Android version 4.0.3 - 4.4.2 (ICS, JellyBean, KitKat); check with *System Settings* > *About phone* > *Android version*
-	* Custom recovery ([CWM](http://forum.xda-developers.com/wiki/ClockworkMod_Recovery), [TWRP](http://teamw.in/project/twrp2) or similar)
 	* Read about [compatibility](https://github.com/M66B/XPrivacy#compatibility) before installing
 1. **Make a backup**
 1. If you haven't already, root your device; the rooting procedure depends on your device's brand and model.
@@ -401,20 +420,39 @@ To see restriction in action, try restricting the category *Identification* for
 [Android Id Info](https://play.google.com/store/apps/details?id=com.bzgames.androidid)
 or try restriction the category *Contacts* for the Contacts application.
 
-**Applying some restrictions require restarting applications and/or your device**
+**Applying some restrictions require restarting applications**
+
+You can turn on and off all restrictions for an application using the on/off switch.
+
+Since version 1.99 you can also restrict on demand.
+This means you will be asked to allow or deny a category/function
+when the category/function is used by an application.
+Restricting on demand is the default for newly installed applications.
+You can turn on and off restricting on demand in the application details view
+using either the settings or the check box next to the on/off switch.
+You can turn on and off restricting on demand for individual categories and functions
+using the second column of check boxes.
 
 If an application has requested Android permissions for a data category,
 the category will be marked with a green key icon.
 If an application has used or tried to use data, the data category will be marked with an orange warning triangle icon.
 If an application has internet permissions, a world globe icon will be shown.
-These icons are just a guideline because an application can still access some privacy sensitive data without Android permissions, such as your device's serial number, and because it is not possible to monitor data usage in each and every situation, such as access to the internet or the external storage.
+These icons are just a guideline because an application can still access some privacy sensitive data without Android permissions,
+such as your device's serial number, and because it is not possible to monitor data usage in each and every situation,
+such as access to the internet or the external storage.
 Be aware that an application can still access the internet through other (sister) applications.
 
-Restricting internet or storage means blocking access to the internet and to external storage (typically the SD card), respectively. Either of these may result in error messages and even cause applications to force close (crash).
+Restricting internet or storage means blocking access to the internet and to external storage (typically the SD card), respectively.
+Either of these may result in error messages and even cause applications to force close (crash).
 
-Category and function restrictions considered dangerous are marked with a reddish background color. These dangerous categories and functions are more likely to cause applications to crash if you restrict them.
+Function restrictions considered dangerous are marked with a reddish background color.
+These dangerous functions are more likely to cause applications to crash if you restrict them.
 
-Global settings and application specific settings are accessible from the application list's menu and from the menu of the application's detailed view. The global settings, such as randomized or set latitude/longitude, apply to all applications unless you override them with specific application settings. But saving an empty set of specific application settings (you can use the clear button)
+Global settings and application specific settings are accessible from the application list's menu
+and from the menu of the application's detailed view. The global settings,
+such as randomized or set latitude/longitude, apply to all applications
+unless you override them with specific application settings.
+But saving an empty set of specific application settings (you can use the clear button)
 will erase all application specific settings so that the global settings will again be in force.
 
 The restrictions template (in the main menu) is applied automatically to newly installed applications
@@ -432,6 +470,7 @@ XPrivacy asks for the following Android permissions:
 * Boot: to be able to check if XPrivacy is enabled
 * Internet: to be able to submit and fetch [crowd sourced restrictions](http://crowd.xprivacy.eu/)
 * Storage: to be able to export XPrivacy's settings to the SD card (only [pro version](http://www.xprivacy.eu/))
+* Wakelock: to keep the processor running during batch operations
 
 If desired, you can even restrict XPrivacy from accessing any of the above,
 but there are some [limitations](https://github.com/M66B/XPrivacy#limitations).
@@ -599,7 +638,7 @@ That is correct. XPrivacy only replaces the real location with a fake location. 
 
 Secondary users can install and use XPrivacy the same way as the primary user.
 The primary user cannot manage the restrictions of secondary users.
-This is because Android totally separates the enviroments of the users
+This is because Android totally separates the environments of the users
 (which is a good thing from a security perspective).
 Each user has its own set of settings, so each user can define its own template and global fake values.
 
@@ -616,7 +655,7 @@ Each user has its own set of settings, so each user can define its own template 
 Because some Google components are not installed.
 
 <a name="FAQ21"></a>
-**(31) Do I still need root after installing Xposed?**
+**(21) Do I still need root after installing Xposed?**
 
 No, root is only required to install Xposed one time.
 
@@ -644,7 +683,7 @@ No, because it's too difficult to implement something like XPrivacy on these OS'
 * network type (mobile, Wi-Fi, etc.)
 * synchronization state
 * screen locking
-* display settings
+* display settings (DPI, resolution, etc)
 * Wi-Fi settings
 * Bluetooth settings
 * shortcuts
@@ -654,6 +693,7 @@ No, because it's too difficult to implement something like XPrivacy on these OS'
 * checks for root
 * lockscreen
 * time(zone)
+* nag-screens, popups
 
 No, because I don't consider this information to be privacy-sensitive data, i.e., able to identify you and collect data about you. I am happy to add new restrictions for data that is really privacy-sensitive.
 
@@ -685,7 +725,7 @@ Note: by default, categories and functions are filtered by permission, so you ma
 <a name="FAQ29"></a>
 **(29) Why doesn't the  pro enabler make all pro features available?**
 
-The [pro enabler](https://play.google.com/store/apps/details?id=biz.bokhorst.xprivacy.pro) is in the Play Store by request of some early XPrivacy users. In the beginning, there was just one pro feature: export and import all restrictions and settings. Later, fetching [crowd sourced restrictions](http://crowd.xprivacy.eu/) was added as a pro feature. Processing the crowd sourced restrictions requires a big server that has to be paid for. The pro enabler's low price (don't forget Google takes 30%) prevented providing this feature for free. Looking back, I would never have added the pro enabler to the Play Store, but I can no longer remove it because of the existing users.
+The [pro enabler](https://play.google.com/store/apps/details?id=biz.bokhorst.xprivacy.pro) is in the Play Store by request of some early XPrivacy users. In the beginning, there was just one pro feature: export and import all restrictions and settings. Later, fetching [crowd sourced restrictions](http://crowd.xprivacy.eu/) was added as a pro feature. Processing the crowd sourced restrictions requires a big server that has to be paid for. The pro enabler's low price (don't forget Google takes 30%) prevented providing this feature for free. Looking back, I would never have added the pro enabler to the Play Store, but I can no longer remove it because of the existing users. Moreover, not everybody has access to PayPal and not everybody needs all pro features, so for these people the pro enabler is still of use.
 
 <a name="FAQ30"></a>
 **(30) What should I do if an application force closes (crashes)?**
@@ -743,6 +783,12 @@ The same applies to the IMEI number, additionally complicated by legal issues in
 	* You will never be asked whether to restrict dangerous functions, except for functions with a white/black list
 	* Setting any category to restricted will not restrict any of its dangerous functions
 * The default after dialog timeout is taken from the current restriction settings
+* There are four possibilities for the restriction / on demand checkboxes:
+	* [ ] [ ] You will not receive an on demand popup, the permission will always be allowed
+	* [ ] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be allowed once
+	* [x] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be denied once
+	* [x] [ ] You will not receive an on demand popup, the permission will always be denied
+* Be aware that the on demand popups are globally, which could be an issue if your device has multiple users. Unfortunately this cannot be change.
 
 <a name="FAQ35"></a>
 **(35) Do I need the pro enabler to use the pro license?**
@@ -750,7 +796,7 @@ The same applies to the IMEI number, additionally complicated by legal issues in
 No, the pro license can be used independently.
 
 <a name="FAQ36"></a>
-**(36) Is PayPal/Bitcoin the only way to donate?**
+**(36) Is PayPal the only way to donate?**
 
 Yes, it is not feasible to add other donation methods at the moment.
 
@@ -824,6 +870,9 @@ I have really spent a lot of time developing XPrivacy and I am happy to look int
 but I am asking you to properly document your issue.
 *It doesn't work* or *it crashes* is insufficient.
 So, please describe the exact steps to reproduce the problem and/or provide a logcat.
+
+If you requested a new feature: there is a feature stop since version 2.x.
+
 See [here](https://github.com/M66B/XPrivacy#support) for more details.
 
 <a name="FAQ53"></a>
@@ -835,9 +884,33 @@ This ensures that other applications cannot uninstall XPrivacy without your know
 **(54) Exporting and importing takes a long time**
 
 There are about 250 restrictions and additionally there can be quite some settings, for example when you use white/black lists.
-So, yes, exporting and importing can take quite some time. The default is to export everything, since the export is meant to be a full backup.
-However, it is possible to filter the applications you want to export, for example only user applications with restrictions,
-and to select these applications using the action bar *select all* to only export a part of the applications.
+So, yes, exporting and importing can take quite some time.
+The default is to export everything, since the export is meant to be a full backup.
+However, it is possible to filter the applications you want to export using the filter icon in the action bar,
+for example only user applications with restrictions,
+and to select these applications using the action bar *select all* (first icon) to only export a part of the applications.
+
+<a name="FAQ55"></a>
+**(55) Why does applying the template not enable on demand restricting?**
+
+Batch enabling on demand restricting using the template could lead to an on demand "hell" and easily bring down your device. On demand restricting is enabled by default for new applications, but not for existing applications. The template enables on demand restricting only if the application on demand restricting master switch is enabled. The master switch can be found in the application specific settings or next to the on/off switch. You can batch enable the master switch by enabling "restrict dangerous" in the main settings.
+
+<a name="FAQ56"></a>
+**(56) How can I recover from a bootloop?**
+
+For devices with a custom recovery (TWRP/CWM) you can flash the [Xposed-Disabler-Recovery.zip](http://forum.xda-developers.com/attachment.php?attachmentid=2568891&d=1391958634). Alternatively (on most devices) press the volume down button 5 times during boot (It will vibrate with each press when done correctly).
+
+<a name='FAQ57'></a>
+**(57) How does 'Expert mode' work?**
+
+Expert mode has 3 sub-options which can be toggled individually.
+
+* *Restrict system component (Android)*
+	* Enabling this option will allow you to restrict applications which have a UID less than 10000 (Android System, Bluetooth Share, Dialer, NFC, Phone, etc.). Note that restricting these core functions is very dangerous, and can easily lead to boot loops. Always create a backup (export/nandroid) before changing these restrictions.
+* *Restrict dangerous functions*
+	* Enabling this option will allow you to restrict dangerous functions (functions with a red background in the application detail view). Note that disabling this option or expert mode will not change the status of restrictions already in place, it will only prevent dangerous functions from being checked while applying the template or checking a category. Also note that individual dangerous functions can be restricted without enabling this option.
+* *Use secure connections*
+	* This will force communications with the crowd sourced restrictions server (submitting/fetching, device registration) to travel through a secure socket. Note that this is enabled by default and can only be disabled by enabling *Expert mode*.
 
 Support
 -------
@@ -866,6 +939,7 @@ It is already enough work to support the official versions from the last stable 
 If you encounter a bug please [create an issue](https://github.com/M66B/XPrivacy/issues).
 
 Include a [logcat](#FAQ14) when relevant (use [pastebin](http://pastebin.com/) or a similar service).
+Try to keep the logcat as brief as possible, searching in large logcats is no fun and not useful.
 
 **Do not forget to enable XPrivacy logging using the settings menu!**
 
@@ -882,7 +956,11 @@ and include information about your device type, Android and XPrivacy version.
 
 If you have a feature request, please [create an issue](https://github.com/M66B/XPrivacy/issues).
 
-Note that there is a stop on big new features, read [here](http://forum.xda-developers.com/showpost.php?p=50535073&postcount=7547) for more information.
+New features are only considered for implementation when requested on GitHub with a detailed description of the feature and only if there are ten +1's within two weeks.
+You can promote your feature request on XDA, but for a maximum of two times only. Feature requests promoted more than two times will be closed and not be considered for implementation anymore.
+See [here](http://forum.xda-developers.com/showpost.php?p=51574315&postcount=8776) for some more information.
+
+Please [read this](http://forum.xda-developers.com/showpost.php?p=52644313&postcount=9241) before voting.
 
 **One feature request per issue please!**
 
@@ -932,6 +1010,7 @@ System applications cannot be restricted.
 
 XPrivacy can restrict more data than any of the above solutions,
 also for closed source applications and libraries, like Google Play services.
+Unlike any other solution, XPrivacy has [crowd sourced restrictions](http://crowd.xprivacy.eu/).
 
 News
 ----
@@ -943,6 +1022,8 @@ News
 * [Black Duck Announces Open Source Rookies of the Year Winners](http://www.blackducksoftware.com/news/releases/black-duck-announces-open-source-rookies-year-winners) (January 28, 2014)
 * [The Open Source Rookies of the Year Awards](http://www.infoworld.com/d/open-source-software/the-open-source-rookies-of-the-year-awards-235116) (January 28, 2014)
 * [XPrivacy تطبيق](http://waleedhassan.wordpress.com/2014/01/31/xprivacy/) (January 31, 2014)
+* [Android privacy tool feeds fake data to prying apps](http://www.wired.co.uk/news/archive/2014-04/01/x-privacy-android-app) (April 1, 2014)
+* [Internet Vandaag](http://www.bnr.nl/radio/bnr-internet-vandaag/708487-1404/internet-vandaag-74) (April 7, 2014)
 
 Contributing
 ------------

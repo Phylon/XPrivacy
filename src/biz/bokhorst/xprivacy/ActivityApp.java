@@ -438,7 +438,7 @@ public class ActivityApp extends ActivityBase {
 			optionContacts();
 			return true;
 		case R.id.menu_whitelists:
-			optionWhitelists();
+			optionWhitelists(null);
 			return true;
 		case R.id.menu_settings:
 			optionSettings();
@@ -575,12 +575,12 @@ public class ActivityApp extends ActivityBase {
 		}
 	}
 
-	private void optionWhitelists() {
+	private void optionWhitelists(String type) {
 		if (Util.hasProLicense(this) == null) {
 			// Redirect to pro page
 			Util.viewUri(this, ActivityMain.cProUri);
 		} else {
-			WhitelistsTask whitelistsTask = new WhitelistsTask();
+			WhitelistsTask whitelistsTask = new WhitelistsTask(type);
 			whitelistsTask.executeOnExecutor(mExecutor, (Object) null);
 		}
 	}
@@ -610,6 +610,7 @@ public class ActivityApp extends ActivityBase {
 			public void onClick(DialogInterface dialog, int _which) {
 				XApplication.manage(ActivityApp.this, mAppInfo.getPackageName().get(which),
 						XApplication.cActionKillProcess);
+				Toast.makeText(ActivityApp.this, getString(R.string.msg_done), Toast.LENGTH_SHORT).show();
 			}
 		});
 		alertDialogBuilder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
@@ -779,9 +780,8 @@ public class ActivityApp extends ActivityBase {
 					while (cursor.moveToNext()) {
 						long id = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID));
 						String contact = cursor.getString(cursor.getColumnIndex(Phone.DISPLAY_NAME));
-						if (contact == null)
-							contact = "-";
-						mapContact.put(id, contact);
+						if (contact != null)
+							mapContact.put(id, contact);
 					}
 				} finally {
 					cursor.close();
@@ -834,8 +834,13 @@ public class ActivityApp extends ActivityBase {
 	}
 
 	private class WhitelistsTask extends AsyncTask<Object, Object, Object> {
+		private String mType;
 		private WhitelistAdapter mWhitelistAdapter;
 		private Map<String, TreeMap<String, Boolean>> mListWhitelist;
+
+		public WhitelistsTask(String type) {
+			mType = type;
+		}
 
 		@Override
 		protected Object doInBackground(Object... params) {
@@ -860,7 +865,8 @@ public class ActivityApp extends ActivityBase {
 					LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					View llWhitelists = inflater.inflate(R.layout.whitelists, null);
 
-					// TODO: sort localized whitelist types
+					int index = 0;
+					int selected = -1;
 					final List<String> localizedType = new ArrayList<String>();
 					for (String type : mListWhitelist.keySet()) {
 						String name = "whitelist_" + type.toLowerCase().replace("/", "");
@@ -869,6 +875,10 @@ public class ActivityApp extends ActivityBase {
 							localizedType.add(name);
 						else
 							localizedType.add(getResources().getString(id));
+
+						if (type.equals(mType))
+							selected = index;
+						index++;
 					}
 
 					Spinner spWhitelistType = (Spinner) llWhitelists.findViewById(R.id.spWhitelistType);
@@ -885,6 +895,8 @@ public class ActivityApp extends ActivityBase {
 						public void onNothingSelected(AdapterView<?> view) {
 						}
 					});
+					if (selected >= 0)
+						spWhitelistType.setSelection(selected);
 
 					ListView lvWhitelist = (ListView) llWhitelists.findViewById(R.id.lvWhitelist);
 					lvWhitelist.setAdapter(mWhitelistAdapter);
@@ -1027,7 +1039,7 @@ public class ActivityApp extends ActivityBase {
 
 		@Override
 		public long getGroupId(int groupPosition) {
-			return groupPosition;
+			return groupPosition * 1000;
 		}
 
 		private class GroupViewHolder {
@@ -1264,7 +1276,7 @@ public class ActivityApp extends ActivityBase {
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			return childPosition;
+			return groupPosition * 1000 + childPosition;
 		}
 
 		@Override
@@ -1286,6 +1298,7 @@ public class ActivityApp extends ActivityBase {
 			public ImageView imgInfo;
 			public TextView tvMethodName;
 			public ImageView imgCbMethodRestricted;
+			public ImageView imgCbMethodWhitelist;
 			public ProgressBar pbRunning;
 			public ImageView imgCbMethodAsk;
 			public LinearLayout llMethodName;
@@ -1299,6 +1312,7 @@ public class ActivityApp extends ActivityBase {
 				imgInfo = (ImageView) row.findViewById(R.id.imgInfo);
 				tvMethodName = (TextView) row.findViewById(R.id.tvMethodName);
 				imgCbMethodRestricted = (ImageView) row.findViewById(R.id.imgCbMethodRestricted);
+				imgCbMethodWhitelist = (ImageView) row.findViewById(R.id.imgCbMethodWhitelist);
 				pbRunning = (ProgressBar) row.findViewById(R.id.pbRunning);
 				imgCbMethodAsk = (ImageView) row.findViewById(R.id.imgCbMethodAsk);
 				llMethodName = (LinearLayout) row.findViewById(R.id.llMethodName);
@@ -1316,6 +1330,7 @@ public class ActivityApp extends ActivityBase {
 			private boolean permission;
 			private RState rstate;
 			private boolean ondemand;
+			private boolean whitelist;
 
 			public ChildHolderTask(int gPosition, int cPosition, ChildViewHolder theHolder, String theRestrictionName) {
 				groupPosition = gPosition;
@@ -1339,6 +1354,10 @@ public class ActivityApp extends ActivityBase {
 					if (ondemand)
 						ondemand = PrivacyManager.getSettingBool(-mAppInfo.getUid(), PrivacyManager.cSettingOnDemand,
 								false, false);
+					if (md.whitelist() == null)
+						whitelist = false;
+					else
+						whitelist = PrivacyManager.listWhitelisted(mAppInfo.getUid()).containsKey(md.whitelist());
 
 					return holder;
 				}
@@ -1368,6 +1387,19 @@ public class ActivityApp extends ActivityBase {
 					holder.imgCbMethodRestricted.setImageBitmap(getCheckBoxImage(rstate));
 					holder.imgCbMethodRestricted.setVisibility(View.VISIBLE);
 
+					// Show whitelist icon
+					holder.imgCbMethodWhitelist.setVisibility(whitelist ? View.VISIBLE : View.GONE);
+					if (whitelist)
+						holder.imgCbMethodWhitelist.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View view) {
+								ActivityApp.this.optionWhitelists(md.whitelist());
+							}
+						});
+					else
+						holder.imgCbMethodWhitelist.setClickable(false);
+
+					// Show asked state
 					if (ondemand) {
 						holder.imgCbMethodAsk.setImageBitmap(getAskBoxImage(rstate));
 						holder.imgCbMethodAsk.setVisibility(View.VISIBLE);
@@ -1375,39 +1407,42 @@ public class ActivityApp extends ActivityBase {
 						holder.imgCbMethodAsk.setVisibility(View.GONE);
 
 					// Listen for restriction changes
-					holder.llMethodName.setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View view) {
-							holder.llMethodName.setEnabled(false);
-							holder.imgCbMethodRestricted.setVisibility(View.GONE);
-							holder.pbRunning.setVisibility(View.VISIBLE);
+					if (parent.restricted)
+						holder.llMethodName.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View view) {
+								holder.llMethodName.setEnabled(false);
+								holder.imgCbMethodRestricted.setVisibility(View.GONE);
+								holder.pbRunning.setVisibility(View.VISIBLE);
 
-							new AsyncTask<Object, Object, Object>() {
-								@Override
-								protected Object doInBackground(Object... arg0) {
-									// Change restriction
-									rstate.toggleRestriction();
-									return null;
-								}
+								new AsyncTask<Object, Object, Object>() {
+									@Override
+									protected Object doInBackground(Object... arg0) {
+										// Change restriction
+										rstate.toggleRestriction();
+										return null;
+									}
 
-								@Override
-								protected void onPostExecute(Object result) {
-									// Refresh display
-									// Needed to update parent
-									notifyDataSetChanged();
+									@Override
+									protected void onPostExecute(Object result) {
+										// Refresh display
+										// Needed to update parent
+										notifyDataSetChanged();
 
-									// Notify restart
-									if (md.isRestartRequired())
-										Toast.makeText(ActivityApp.this, getString(R.string.msg_restart),
-												Toast.LENGTH_SHORT).show();
+										// Notify restart
+										if (md.isRestartRequired())
+											Toast.makeText(ActivityApp.this, getString(R.string.msg_restart),
+													Toast.LENGTH_SHORT).show();
 
-									holder.pbRunning.setVisibility(View.GONE);
-									holder.imgCbMethodRestricted.setVisibility(View.VISIBLE);
-									holder.llMethodName.setEnabled(true);
-								}
-							}.executeOnExecutor(mExecutor);
-						}
-					});
+										holder.pbRunning.setVisibility(View.GONE);
+										holder.imgCbMethodRestricted.setVisibility(View.VISIBLE);
+										holder.llMethodName.setEnabled(true);
+									}
+								}.executeOnExecutor(mExecutor);
+							}
+						});
+					else
+						holder.llMethodName.setClickable(false);
 
 					// Listen for ask changes
 					if (ondemand)
@@ -1529,7 +1564,9 @@ public class ActivityApp extends ActivityBase {
 			}
 
 			// Display restriction
-			holder.tvMethodName.setClickable(false);
+			holder.llMethodName.setClickable(false);
+			holder.imgCbMethodRestricted.setVisibility(View.INVISIBLE);
+			holder.imgCbMethodWhitelist.setVisibility(View.GONE);
 
 			// Async update
 			new ChildHolderTask(groupPosition, childPosition, holder, restrictionName).executeOnExecutor(mExecutor,

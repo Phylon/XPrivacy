@@ -44,11 +44,13 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
 	@SuppressLint("InlinedApi")
 	public void initZygote(StartupParam startupParam) throws Throwable {
-		// Check for LBE security master
-		if (Util.hasLBE())
-			return;
+		Util.log(null, Log.WARN, String.format("Load %s", startupParam.modulePath));
 
-		Util.log(null, Log.INFO, String.format("Load %s", startupParam.modulePath));
+		// Check for LBE security master
+		if (Util.hasLBE()) {
+			Util.log(null, Log.ERROR, "LBE installed");
+			return;
+		}
 
 		// Generate secret
 		mSecret = Long.toHexString(new Random().nextLong());
@@ -177,6 +179,13 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 		try {
 			Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient$Info", false, lpparam.classLoader);
 			hookAll(XAdvertisingIdClientInfo.getInstances(), lpparam.classLoader, mSecret);
+		} catch (Throwable ignored) {
+		}
+
+		// User activity
+		try {
+			Class.forName("com.google.android.gms.location.ActivityRecognitionClient", false, lpparam.classLoader);
+			hookAll(XActivityRecognitionClient.getInstances(), lpparam.classLoader, mSecret);
 		} catch (Throwable ignored) {
 		}
 
@@ -380,6 +389,7 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 				} else {
 					for (Method method : clazz.getDeclaredMethods())
 						if (method.getName().equals(hook.getMethodName())
+								&& !Modifier.isAbstract(method.getModifiers())
 								&& (Modifier.isPublic(method.getModifiers()) ? hook.isVisible() : !hook.isVisible()))
 							listMember.add(method);
 				}
@@ -389,9 +399,12 @@ public class XPrivacy implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 			// Hook members
 			for (Member member : listMember)
 				try {
-					XposedBridge.hookMethod(member, methodHook);
+					if (Modifier.isAbstract(member.getModifiers()))
+						Util.log(hook, Log.ERROR, String.format("Abstract: %s", member));
+					else
+						XposedBridge.hookMethod(member, methodHook);
 				} catch (NoSuchFieldError ex) {
-					Util.log(null, Log.WARN, ex.toString());
+					Util.log(hook, Log.WARN, ex.toString());
 				} catch (Throwable ex) {
 					mListHookError.add(ex.toString());
 					Util.bug(hook, ex);

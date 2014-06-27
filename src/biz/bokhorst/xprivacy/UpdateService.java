@@ -22,6 +22,7 @@ public class UpdateService extends Service {
 	public static String cAction = "Action";
 	public static int cActionBoot = 1;
 	public static int cActionUpdated = 2;
+	public static String cFlush = "biz.bokhorst.xprivacy.action.FLUSH";
 
 	private static Thread mWorkerThread;
 
@@ -34,6 +35,17 @@ public class UpdateService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// Check if work
 		if (intent == null) {
+			stopSelf();
+			return 0;
+		}
+
+		// Check intent
+		if (cFlush.equals(intent.getAction())) {
+			try {
+				PrivacyService.getClient().flush();
+			} catch (Throwable ex) {
+				Util.bug(null, ex);
+			}
 			stopSelf();
 			return 0;
 		}
@@ -178,7 +190,8 @@ public class UpdateService extends Service {
 		List<ApplicationInfo> listApp = context.getPackageManager().getInstalledApplications(0);
 
 		// Randomize global
-		PrivacyManager.setSettingList(getRandomizeWork(context, 0));
+		int userId = Util.getUserId(Process.myUid());
+		PrivacyManager.setSettingList(getRandomizeWork(context, userId));
 
 		// Randomize applications
 		for (int i = 1; i <= listApp.size(); i++) {

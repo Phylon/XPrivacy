@@ -15,14 +15,137 @@ Changelog
 
 **Next release**
 
+[Open issues](https://github.com/M66B/XPrivacy/issues?state=open)
+
+**Version 2.0.27 BETA**
+
+* Showing icon if there is white/black list for a function ([issue](/../../issues/1654))
+	* Thanks @[an0n981](https://github.com/an0n981) for the icons
+* Updated Russian translation
+* Updated Slovak translation
+
+**Version 2.0.26 BETA**
+
+* Acquiring partial wakelock for batch operations ([issue](/../../issues/1683))
+* Added option/interface to clear service cache ([issue](/../../issues/1678))
+	* Run this as root to clear the service cache:
+
+```
+am startservice -a biz.bokhorst.xprivacy.action.FLUSH
+```
+
+* Not storing salt into database anymore for increased privacy ([issue](/../../issues/1661))
+* Updated Dutch translation
+* Updated German translation
+* Updated Italian translation
+* Updated traditional Chinese translation
+
+**Version 2.0.25 STABLE**
+
+* Fixed applying template for functions with whitelists (reported on XDA)
+* Port number wildcard for IP-address and domain names ([issue](/../../issues/1649))
+
+**Version 2.0.24 BETA**
+
+* Reverted "Not storing salt into database anymore for increased privacy" ([issue](/../../issues/1661)) ([issue](/../../issues/1664))
+
+**Version 2.0.23 BETA**
+
+* Fixed displaying contacts without display name ([issue](/../../issues/1660))
+* Fixed on demand restricting for dangerous methods with whitelists ([issue](/../../issues/1653))
+* Not storing salt into database anymore for increased privacy ([issue](/../../issues/1661))
+* Easier pro license file import ([issue](/../../issues/1658))
+
+**Version 2.0.22 STABLE**
+
+* Fixed incompatibility with Xposed 2.6 beta 1 ([issue](/../../issues/1659))
+
+**Version 2.0.21 STABLE**
+
+* Fixed incompatibility with Xposed 2.6 beta 1 ([issue](/../../issues/1659))
+
+**Version 2.0.20 STABLE**
+
+* Updated French translation
+* Updated Slovak translation
+* Fixed hooking abstract methods ([issue](/../../issues/1647))
+
+**Version 2.0.19 STABLE**
+
+* Fixed handling of *removeActivityUpdates*
+
+**Version 2.0.18 STABLE**
+
+* Updated Italian translation
+
+**Version 2.0.17 BETA**
+
+* Fixed restricting activity recognition (category location)
+* Display disabled standard dangerous functions with a faint background color
+
+**Version 2.0.16 BETA**
+
+* Fixed applying template in relation to default restrictions ([issue](/../../issues/1566))
+* Prefix export file name with date ([issue](/../../issues/1625))
+* Display user defined dangerous functions orangish ([issue](/../../issues/1626))
+	* Long press on a function in the template to define dangerous functions
+
+**Version 2.0.15 BETA**
+
+* On demand restricting control in application list ([issue](/../../issues/1615))
+* Updated embedded documentation, thanks @[Phylon](https://github.com/Phylon)
+* Updated Polish translation
+* Updated Slovak translation
+
+**Version 2.0.14 STABLE**
+
+* Fixed restricting profile (owner name, etc) ([issue](/../../issues/1610))
+
+**Version 2.0.13 TEST**
+
+* Fixed error message for Android versions below JellyBean MR1 (SDK 17) ([issue](/../../issues/1602))
+* Reverted "Fixed multi threaded database access", since it leads to freezes on some ROMs
+* Added restriction for [activity recognition](http://developer.android.com/training/location/activity-recognition.html) ([issue](/../../issues/1608))
+* Updated Arabic translation
+
+**Version 2.0.12 STABLE**
+
+* Updated embedded documentation
+* Fixed some minor issues reported by support info
+* Updated traditional Chinese translation
+
+**Version 2.0.11 BETA**
+
+* Fixed application specific settings ([issue](/../../issues/1596))
+* Always notify *Restricted by ...* (disabled client side caching)
+* Hide application notifications settings when global setting disabled
+
+**Version 2.0.10 TEST**
+
+* Fixed multi threaded database access (for some ROMs this happens sometimes)
+* Added option to globally enable/disable update notifications
+* *getDeviceId* and *getSubscriberId* will automatically restrict *getPhoneType*, thanks @[Phylon](https://github.com/Phylon) for the suggestion
+
+**Version 2.0.9 BETA**
+
+* Fixed photos for allowed contacts ([issue](/../../issues/1588))
+* Fixed *GMS.removeGeofences*
+* Fixed randomization for secondary users
+* Updated Lithuanian translation
+* Updated Slovenian translation
+
+**Version 2.0.8 BETA**
+
 * Using secure links for documentation, thanks @[Phylon](https://github.com/Phylon)
 * Made reboot messages translatable ([issue](/../../issues/1580))
 * Limited usage data to 12 hours or 700 lines
 * Made applying template consistent with visible template
 * Updated Dutch translation
+* Updated French translation
+* Updated German translation
+* Updated Italian translation
 * Updated Russian translation
-
-[Open issues](https://github.com/M66B/XPrivacy/issues?state=open)
+* Updated Vietnamese translation
 
 **Version 2.0.7 STABLE**
 
