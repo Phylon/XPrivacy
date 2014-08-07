@@ -3,7 +3,7 @@ package biz.bokhorst.xprivacy;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
+import android.content.res.Resources;
 
 public class Meta {
 	private static boolean mAnnotated = false;
@@ -15,16 +15,22 @@ public class Meta {
 	public final static String cTypeContact = "Contact";
 	public final static String cTypeTemplate = "Template";
 
+	public final static String cTypeAddress = "Address";
 	public final static String cTypeCommand = "Command";
 	public final static String cTypeFilename = "Filename";
 	public final static String cTypeIPAddress = "IPAddress";
 	public final static String cTypeLibrary = "Library";
+	public final static String cTypeMethod = "Method";
+	public final static String cTypePermission = "Permission";
 	public final static String cTypeProc = "Proc";
+	public final static String cTypeTransaction = "Transaction";
 	public final static String cTypeUrl = "Url";
 
 	public static boolean isWhitelist(String type) {
-		return (cTypeCommand.equals(type) || cTypeFilename.equals(type) || cTypeIPAddress.equals(type)
-				|| cTypeLibrary.equals(type) || cTypeProc.equals(type) || cTypeUrl.equals(type));
+		return (cTypeAddress.equals(type) || cTypeCommand.equals(type) || cTypeFilename.equals(type)
+				|| cTypeIPAddress.equals(type) || cTypeLibrary.equals(type) || cTypeMethod.equals(type)
+				|| cTypePermission.equals(type) || cTypeProc.equals(type) || cTypeTransaction.equals(type) || cTypeUrl
+					.equals(type));
 	}
 
 	public static List<Hook> get() {
@@ -33,18 +39,18 @@ public class Meta {
 			return mListHook;
 
 		// @formatter:off
-		mListHook.add(new Hook("accounts", "addOnAccountsUpdatedListener", "GET_ACCOUNTS", 10, null, null));
-		mListHook.add(new Hook("accounts", "blockingGetAuthToken", "USE_CREDENTIALS", 10, null, null));
-		mListHook.add(new Hook("accounts", "getAccounts", "GET_ACCOUNTS", 10, null, null));
-		mListHook.add(new Hook("accounts", "getAccountsByType", "GET_ACCOUNTS", 10, null, null));
-		mListHook.add(new Hook("accounts", "getAccountsByTypeAndFeatures", "GET_ACCOUNTS", 10, null, null));
-		mListHook.add(new Hook("accounts", "getAuthToken", "USE_CREDENTIALS", 10, "0.0", null).dangerous());
-		mListHook.add(new Hook("accounts", "getAuthTokenByFeatures", "MANAGE_ACCOUNTS", 10, "0.0", null).dangerous());
-		mListHook.add(new Hook("accounts", "hasFeatures", "GET_ACCOUNTS", 10, null, null));
+		mListHook.add(new Hook("accounts", "addOnAccountsUpdatedListener", "GET_ACCOUNTS", 5, null, null));
+		mListHook.add(new Hook("accounts", "blockingGetAuthToken", "USE_CREDENTIALS", 5, null, null));
+		mListHook.add(new Hook("accounts", "getAccounts", "GET_ACCOUNTS", 5, null, null));
+		mListHook.add(new Hook("accounts", "getAccountsByType", "GET_ACCOUNTS", 5, null, null));
+		mListHook.add(new Hook("accounts", "getAccountsByTypeAndFeatures", "GET_ACCOUNTS", 5, null, null));
+		mListHook.add(new Hook("accounts", "getAuthToken", "USE_CREDENTIALS", 5, "0.0", null).dangerous());
+		mListHook.add(new Hook("accounts", "getAuthTokenByFeatures", "MANAGE_ACCOUNTS", 5, "0.0", null).dangerous());
+		mListHook.add(new Hook("accounts", "hasFeatures", "GET_ACCOUNTS", 8, null, null));
 		mListHook.add(new Hook("accounts", "getAccountsByTypeForPackage", "GET_ACCOUNTS", 18, null, null));
 
-		mListHook.add(new Hook("accounts", "getTokenGoogle", "GET_ACCOUNTS", 10, "0.0", null).dangerous());
-		mListHook.add(new Hook("accounts", "getTokenWithNotificationGoogle", "GET_ACCOUNTS", 10, "0.0", null).dangerous());
+		mListHook.add(new Hook("accounts", "getTokenGoogle", "GET_ACCOUNTS", 1, "0.0", null).dangerous());
+		mListHook.add(new Hook("accounts", "getTokenWithNotificationGoogle", "GET_ACCOUNTS", 1, "0.0", null).dangerous());
 
 		mListHook.add(new Hook("accounts", "getAuthenticatorTypes", "GET_ACCOUNTS", 5, "1.99.24", null).dangerous());
 		mListHook.add(new Hook("accounts", "getCurrentSync", "GET_ACCOUNTS", 8, "1.99.24", null).dangerous());
@@ -56,13 +62,16 @@ public class Meta {
 
 		mListHook.add(new Hook("calendar", "CalendarProvider2", "READ_CALENDAR,WRITE_CALENDAR", 1, null, null));
 
-		mListHook.add(new Hook("calling", "sendDataMessage", "SEND_SMS", 4, null, null).doNotify());
-		mListHook.add(new Hook("calling", "sendMultipartTextMessage", "SEND_SMS", 4, null, null).doNotify());
-		mListHook.add(new Hook("calling", "sendTextMessage", "SEND_SMS", 4, null, null).doNotify());
+		mListHook.add(new Hook("calling", "sendDataMessage", "SEND_SMS", 4, null, null).whitelist(cTypeAddress).doNotify());
+		mListHook.add(new Hook("calling", "sendMultipartTextMessage", "SEND_SMS", 4, null, null).whitelist(cTypeAddress).doNotify());
+		mListHook.add(new Hook("calling", "sendTextMessage", "SEND_SMS", 4, null, null).whitelist(cTypeAddress).doNotify());
 		mListHook.add(new Hook("calling", "android.intent.action.RESPOND_VIA_MESSAGE", "SEND_RESPOND_VIA_MESSAGE", 18, null, null).doNotify());
 		mListHook.add(new Hook("calling", "android.intent.action.CALL", "CALL_PHONE", 10, null, null).doNotify());
+		mListHook.add(new Hook("calling", "android.intent.action.NEW_OUTGOING_CALL", "PROCESS_OUTGOING_CALLS", 10, "2.1.23", "phone/android.intent.action.NEW_OUTGOING_CALL"));
+		mListHook.add(new Hook("calling", "CallLogProvider", "READ_CALL_LOG", 1, "2.1.23", "phone/CallLogProvider"));
 
 		mListHook.add(new Hook("calling", "SIP.isApiSupported", "USE_SIP", 9, null, null).doNotify());
+		mListHook.add(new Hook("calling", "SIP.isSipWifiOnly", "USE_SIP", 9, null, null).doNotify());
 		mListHook.add(new Hook("calling", "SIP.isVoipSupported", "USE_SIP", 9, null, null).doNotify());
 		mListHook.add(new Hook("calling", "SIP.newInstance", "USE_SIP", 9, null, null).doNotify());
 
@@ -99,12 +108,17 @@ public class Meta {
 		mListHook.add(new Hook("identification", "AdvertisingId", "", 1, null, null));
 		mListHook.add(new Hook("identification", "getString", "", 1, null, null));
 		mListHook.add(new Hook("identification", "getDescriptor", "", 16, null, null));
+		mListHook.add(new Hook("identification", "InputDevice.getName", "", 9, null, null));
 		mListHook.add(new Hook("identification", "GservicesProvider", "com.google.android.providers.gsf.permission.READ_GSERVICES,com.google.android.providers.gsf.permission.WRITE_GSERVICES", 1, null, null).dangerous());
 		mListHook.add(new Hook("identification", "SERIAL", "", 1, null, null).restart().noUsageData());
 
-		mListHook.add(new Hook("internet", "getAllByName", "INTERNET", 1, "0.0", null).dangerous());
-		mListHook.add(new Hook("internet", "getByAddress", "INTERNET", 1, "0.0", null).dangerous());
-		mListHook.add(new Hook("internet", "getByName", "INTERNET", 1, "0.0", null).dangerous());
+		mListHook.add(new Hook("identification", "USB.getDeviceId", "", 12, "2.1.7", null));
+		mListHook.add(new Hook("identification", "USB.getDeviceName", "", 12, "2.1.7", null));
+		mListHook.add(new Hook("identification", "USB.getSerialNumber", "", 20, "2.1.17", null));
+
+		mListHook.add(new Hook("internet", "getAllByName", "INTERNET", 1, "0.0", null).dangerous().whitelist(cTypeIPAddress));
+		mListHook.add(new Hook("internet", "getByAddress", "INTERNET", 1, "0.0", null).dangerous().whitelist(cTypeIPAddress));
+		mListHook.add(new Hook("internet", "getByName", "INTERNET", 1, "0.0", null).dangerous().whitelist(cTypeIPAddress));
 
 		mListHook.add(new Hook("internet", "getByInetAddress", "INTERNET", 1, null, null));
 		mListHook.add(new Hook("internet", "getNetworkInterfaces", "INTERNET", 1, null, null));
@@ -113,6 +127,7 @@ public class Meta {
 		mListHook.add(new Hook("internet", "inet_bw", "READ_NETWORK_USAGE_HISTORY,MODIFY_NETWORK_ACCOUNTING", 1, "2.1.1", null).dangerous().restart().noUsageData());
 		mListHook.add(new Hook("internet", "inet_vpn", "NET_TUNNELING", 1, "2.1.1", null).dangerous().restart().noUsageData());
 		mListHook.add(new Hook("internet", "inet_mesh", "LOOP_RADIO", 1, "2.1.1", null).dangerous().restart().noUsageData());
+
 		mListHook.add(new Hook("internet", "getActiveNetworkInfo", null, 1, null, null).dangerous());
 		mListHook.add(new Hook("internet", "getAllNetworkInfo", null, 1, null, null));
 		mListHook.add(new Hook("internet", "getNetworkInfo", null, 1, null, null).dangerous());
@@ -127,23 +142,17 @@ public class Meta {
 
 		mListHook.add(new Hook("internet", "connect", null, 1, "1.99.45", null).dangerous().whitelist(cTypeIPAddress));
 
-		mListHook.add(new Hook("ipc", "android.accounts.IAccountManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.app.IActivityManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.content.IClipboard", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.net.IConnectivityManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.content.IContentService", "", 1, "1.99.40", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.location.ILocationManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "com.android.internal.telephony.ITelephonyRegistry", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "com.android.internal.telephony.ITelephonyRegistryMSim", "", 1, "1.99.26", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.content.pm.IPackageManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "com.android.internal.telephony.IPhoneSubInfo", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "com.android.internal.telephony.msim.IPhoneSubInfoMSim", "", 1, "1.99.26", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.view.IWindowManager", "", 1, "1.99.1", null).dangerous());
-		mListHook.add(new Hook("ipc", "android.net.wifi.IWifiManager", "", 1, "1.99.1", null).dangerous());
+		mListHook.add(new Hook("internet", "LinkAddress.toString", null, 20, "2.1.17", null));
+
+		mListHook.add(new Hook("ipc", "Binder", "", 1, "2.1.21", null).dangerous().whitelist(cTypeTransaction));
+		mListHook.add(new Hook("ipc", "Service", "", 1, "2.2.1", null).dangerous().whitelist(cTypeMethod));
 
 		mListHook.add(new Hook("location", "addGeofence", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 17, null, null));
+		mListHook.add(new Hook("location", "addGpsStatusListener", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 3, "2.1.17", null));
 		mListHook.add(new Hook("location", "addNmeaListener", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 5, null, null));
 		mListHook.add(new Hook("location", "addProximityAlert", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, null, null));
+		mListHook.add(new Hook("location", "getAllProviders", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.20", null).dangerous());
+		mListHook.add(new Hook("location", "getBestProvider", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.20", null).dangerous());
 		mListHook.add(new Hook("location", "getGpsStatus", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 3, "1.99.29", null));
 		mListHook.add(new Hook("location", "getLastKnownLocation", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, null, null));
 		mListHook.add(new Hook("location", "getProviders", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "1.99.1", null).dangerous());
@@ -158,10 +167,22 @@ public class Meta {
 		mListHook.add(new Hook("location", "getAllCellInfo", "ACCESS_COARSE_UPDATES", 17, null, null));
 		mListHook.add(new Hook("location", "getScanResults", "ACCESS_WIFI_STATE", 1, null, null).dangerous());
 		mListHook.add(new Hook("location", "listen", "ACCESS_COARSE_LOCATION", 1, null, null));
+
 		mListHook.add(new Hook("location", "GMS.addGeofences", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, null, null));
 		mListHook.add(new Hook("location", "GMS.getLastLocation", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, null, null));
 		mListHook.add(new Hook("location", "GMS.requestLocationUpdates", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, null, null));
 		mListHook.add(new Hook("location", "GMS.requestActivityUpdates", "com.google.android.gms.permission.ACTIVITY_RECOGNITION", 1, null, null));
+
+		mListHook.add(new Hook("location", "MapV1.getLatitudeE6", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV1.getLongitudeE6", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV1.enableMyLocation", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+
+		mListHook.add(new Hook("location", "MapV2.getMyLocation", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV2.getPosition", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV2.setLocationSource", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV2.setOnMapClickListener", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV2.setOnMapLongClickListener", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
+		mListHook.add(new Hook("location", "MapV2.setOnMyLocationChangeListener", "ACCESS_COARSE_LOCATION,ACCESS_FINE_LOCATION", 1, "2.1.25", null));
 
 		mListHook.add(new Hook("media", "startRecording", "RECORD_AUDIO", 3, null, null).doNotify());
 		mListHook.add(new Hook("media", "setPreviewCallback", "CAMERA", 1, null, null).doNotify());
@@ -172,6 +193,10 @@ public class Meta {
 		mListHook.add(new Hook("media", "android.media.action.IMAGE_CAPTURE", "CAMERA", 3, null, null).doNotify());
 		mListHook.add(new Hook("media", "android.media.action.IMAGE_CAPTURE_SECURE", "CAMERA", 17, null, null).doNotify());
 		mListHook.add(new Hook("media", "android.media.action.VIDEO_CAPTURE", "CAMERA", 3, null, null).doNotify());
+		mListHook.add(new Hook("media", "Camera2.capture", "CAMERA", 20, null, null).doNotify());
+		mListHook.add(new Hook("media", "Camera2.captureBurst", "CAMERA", 20, null, null).doNotify());
+		mListHook.add(new Hook("media", "Camera2.setRepeatingRequest", "CAMERA", 20, null, null).doNotify());
+		mListHook.add(new Hook("media", "Camera2.setRepeatingBurst", "CAMERA", 20, null, null).doNotify());
 
 		mListHook.add(new Hook("messages", "getAllMessagesFromIcc", "RECEIVE_SMS", 10, null, null));
 		mListHook.add(new Hook("messages", "SmsProvider", "READ_SMS", 1, null, null));
@@ -229,10 +254,8 @@ public class Meta {
 		mListHook.add(new Hook("phone", "getSimOperator", "", 10, null, null));
 		mListHook.add(new Hook("phone", "getSimOperatorName", "", 10, null, null));
 		mListHook.add(new Hook("phone", "getGroupIdLevel1", "READ_PHONE_STATE", 18, null, null));
-		mListHook.add(new Hook("phone", "android.intent.action.NEW_OUTGOING_CALL", "PROCESS_OUTGOING_CALLS", 10, null, null));
 		mListHook.add(new Hook("phone", "android.intent.action.PHONE_STATE", "READ_PHONE_STATE", 10, null, null));
 		mListHook.add(new Hook("phone", "TelephonyProvider", "WRITE_APN_SETTINGS", 1, null, null));
-		mListHook.add(new Hook("phone", "CallLogProvider", "READ_CALL_LOG", 1, null, null));
 		mListHook.add(new Hook("phone", "Configuration.MCC", "", 1, "2.0", null).noUsageData().noOnDemand());
 		mListHook.add(new Hook("phone", "Configuration.MNC", "", 1, "2.0", null).noUsageData().noOnDemand());
 
@@ -250,6 +273,7 @@ public class Meta {
 		mListHook.add(new Hook("sensors", "rotation", "", 3, null, null));
 		mListHook.add(new Hook("sensors", "temperature", "", 3, null, null));
 		mListHook.add(new Hook("sensors", "step", "", 3, null, null));
+		mListHook.add(new Hook("sensors", "heartrate", "", 20, null, null));
 
 		mListHook.add(new Hook("shell", "sh", "", 10, "0.0", null).dangerous().whitelist(cTypeCommand));
 		mListHook.add(new Hook("shell", "su", "", 10, "0.0", null).dangerous().whitelist(cTypeCommand));
@@ -264,8 +288,17 @@ public class Meta {
 		mListHook.add(new Hook("storage", "getExternalStorageState", null, 10, null, null));
 		mListHook.add(new Hook("storage", "open", null, 1, "1.99.46", null).dangerous().whitelist(cTypeFilename));
 
+		mListHook.add(new Hook("storage", "openAssetFileDescriptor", null, 3, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openFileDescriptor", null, 1, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openInputStream", null, 1, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openOutputStream", null, 1, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openTypedAssetFileDescriptor", null, 11, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openAssetFile", null, 5, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+		mListHook.add(new Hook("storage", "openFile", null, 5, "2.1.17", null).dangerous().whitelist(cTypeFilename));
+
 		mListHook.add(new Hook("system", "getInstalledApplications", "", 1, null, null).dangerous());
 		mListHook.add(new Hook("system", "getInstalledPackages", "", 1, null, null).dangerous());
+		mListHook.add(new Hook("system", "getPackagesForUid", "", 1, "2.1.17", null).dangerous());
 		mListHook.add(new Hook("system", "getPackagesHoldingPermissions", "", 18, "1.99.1", null).dangerous());
 		mListHook.add(new Hook("system", "getPreferredActivities", "", 1, "1.99.44", null).dangerous());
 		mListHook.add(new Hook("system", "getPreferredPackages", "", 1, null, null).dangerous());
@@ -278,10 +311,10 @@ public class Meta {
 
 		mListHook.add(new Hook("system", "getInstalledProviders", "", 3, null, null).dangerous());
 
-		mListHook.add(new Hook("system", "getRecentTasks", "GET_TASKS", 10, null, null).dangerous());
-		mListHook.add(new Hook("system", "getRunningAppProcesses", "", 10, null, null).dangerous());
-		mListHook.add(new Hook("system", "getRunningServices", "", 10, null, null).dangerous());
-		mListHook.add(new Hook("system", "getRunningTasks", "GET_TASKS", 10, null, null).dangerous());
+		mListHook.add(new Hook("system", "getRecentTasks", "GET_TASKS", 1, null, null).dangerous());
+		mListHook.add(new Hook("system", "getRunningAppProcesses", "", 3, null, null).dangerous());
+		mListHook.add(new Hook("system", "getRunningServices", "", 1, null, null).dangerous());
+		mListHook.add(new Hook("system", "getRunningTasks", "GET_TASKS", 1, null, null).dangerous());
 
 		mListHook.add(new Hook("system", "android.intent.action.PACKAGE_ADDED", "", 1, null, null).dangerous());
 		mListHook.add(new Hook("system", "android.intent.action.PACKAGE_REPLACED", "", 3, null, null).dangerous());
@@ -297,6 +330,9 @@ public class Meta {
 		mListHook.add(new Hook("system", "android.intent.action.EXTERNAL_APPLICATIONS_UNAVAILABLE", "", 8, null, null).dangerous());
 		mListHook.add(new Hook("system", "ApplicationsProvider", "", 1, null, null));
 
+		mListHook.add(new Hook("system", "checkPermission", "", 1, "2.1.24", null).dangerous().whitelist(cTypePermission));
+		mListHook.add(new Hook("system", "checkUidPermission", "", 1, "2.1.24", null).dangerous().whitelist(cTypePermission));
+
 		mListHook.add(new Hook("view", "loadUrl", "", 1, null, null).whitelist(cTypeUrl));
 		mListHook.add(new Hook("view", "WebView", "", 1, null, null));
 		mListHook.add(new Hook("view", "getDefaultUserAgent", "", 17, null, null));
@@ -309,7 +345,7 @@ public class Meta {
 		return mListHook;
 	}
 
-	public static void annotate(Context context) {
+	public static void annotate(Resources resources) {
 		if (mAnnotated)
 			return;
 
@@ -317,9 +353,9 @@ public class Meta {
 		for (Hook hook : get()) {
 			String name = hook.getRestrictionName() + "_" + hook.getName();
 			name = name.replace(".", "_").replace("/", "_").replace("%", "_").replace("-", "_");
-			int resId = context.getResources().getIdentifier(name, "string", self);
+			int resId = resources.getIdentifier(name, "string", self);
 			if (resId > 0)
-				hook.annotate(context.getString(resId));
+				hook.annotate(resources.getString(resId));
 		}
 
 		mAnnotated = true;

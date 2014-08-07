@@ -9,6 +9,7 @@ import android.util.Log;
 public class XSensorManager extends XHook {
 	private Methods mMethod;
 	private String mClassName;
+	private static final String cClassName = "android.hardware.SensorManager";
 
 	private XSensorManager(Methods method, String restrictionName, String className) {
 		super(restrictionName, method.name(), null);
@@ -34,11 +35,15 @@ public class XSensorManager extends XHook {
 		getDefaultSensor, getSensorList
 	};
 
-	public static List<XHook> getInstances(Object instance) {
-		String className = instance.getClass().getName();
+	public static List<XHook> getInstances(String className) {
 		List<XHook> listHook = new ArrayList<XHook>();
-		listHook.add(new XSensorManager(Methods.getDefaultSensor, PrivacyManager.cSensors, className));
-		listHook.add(new XSensorManager(Methods.getSensorList, PrivacyManager.cSensors, className));
+		if (!cClassName.equals(className)) {
+			if (className == null)
+				className = cClassName;
+
+			listHook.add(new XSensorManager(Methods.getDefaultSensor, PrivacyManager.cSensors, className));
+			listHook.add(new XSensorManager(Methods.getSensorList, PrivacyManager.cSensors, className));
+		}
 		return listHook;
 	}
 
@@ -77,7 +82,9 @@ public class XSensorManager extends XHook {
 
 	@SuppressWarnings("deprecation")
 	private boolean isRestricted(XParam param, int type) throws Throwable {
-		if (type == Sensor.TYPE_ACCELEROMETER || type == Sensor.TYPE_LINEAR_ACCELERATION) {
+		if (type == Sensor.TYPE_ALL)
+			return false;
+		else if (type == Sensor.TYPE_ACCELEROMETER || type == Sensor.TYPE_LINEAR_ACCELERATION) {
 			if (isRestricted(param, "acceleration"))
 				return true;
 		} else if (type == Sensor.TYPE_GRAVITY) {
@@ -109,11 +116,14 @@ public class XSensorManager extends XHook {
 				|| type == Sensor.TYPE_ROTATION_VECTOR) {
 			if (isRestricted(param, "rotation"))
 				return true;
-		} else if (type == Sensor.TYPE_AMBIENT_TEMPERATURE) {
+		} else if (type == Sensor.TYPE_TEMPERATURE || type == Sensor.TYPE_AMBIENT_TEMPERATURE) {
 			if (isRestricted(param, "temperature"))
 				return true;
 		} else if (type == Sensor.TYPE_STEP_COUNTER || type == Sensor.TYPE_STEP_DETECTOR) {
 			if (isRestricted(param, "step"))
+				return true;
+		} else if (type == 21) { // TODO: replace by TYPE_HEART_RATE
+			if (isRestricted(param, "heartrate"))
 				return true;
 		} else
 			Util.log(this, Log.WARN, "Unknown sensor type=" + type);

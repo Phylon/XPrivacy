@@ -32,6 +32,7 @@ public class XWebView extends XHook {
 	// public WebView(Context context, AttributeSet attrs)
 	// public WebView(Context context, AttributeSet attrs, int defStyle)
 	// public WebView(Context context, AttributeSet attrs, int defStyle, boolean privateBrowsing)
+	// public WebView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
 	// protected WebView(Context context, AttributeSet attrs, int defStyle, Map<String, Object> javaScriptInterfaces, boolean privateBrowsing)
 	// public WebSettings getSettings()
 	// public void loadUrl(String url)
@@ -94,7 +95,7 @@ public class XWebView extends XHook {
 				Class<?> clazz = param.getResult().getClass();
 				if (!mWebSettings.contains(clazz.getName())) {
 					mWebSettings.add(clazz.getName());
-					XPrivacy.hookAll(XWebSettings.getInstances(param.getResult()), getSecret());
+					XPrivacy.hookAll(XWebSettings.getInstances(param.getResult()), null, getSecret());
 				}
 			}
 

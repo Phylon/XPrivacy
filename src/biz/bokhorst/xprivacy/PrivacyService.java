@@ -16,13 +16,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -32,6 +31,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
@@ -41,16 +42,21 @@ import android.os.Looper;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.os.StrictMode.ThreadPolicy;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -59,10 +65,10 @@ import android.widget.Toast;
 public class PrivacyService {
 	private static int mXUid = -1;
 	private static boolean mRegistered = false;
-	private static boolean mUseCache = false;
 	private static String mSecret = null;
 	private static Thread mWorker = null;
 	private static Handler mHandler = null;
+	private static long mOnDemandLastAnswer = 0;
 	private static Semaphore mOndemandSemaphore = new Semaphore(1, true);
 	private static List<String> mListError = new ArrayList<String>();
 	private static IPrivacyService mClient = null;
@@ -71,8 +77,8 @@ public class PrivacyService {
 	private static final String cTableUsage = "usage";
 	private static final String cTableSetting = "setting";
 
-	private static final int cCurrentVersion = 351;
-	private static final String cServiceName = "xprivacy347";
+	private static final int cCurrentVersion = 373;
+	private static final String cServiceName = "xprivacy367";
 
 	// TODO: define column names
 	// sqlite3 /data/system/xprivacy/xprivacy.db
@@ -100,16 +106,10 @@ public class PrivacyService {
 
 			// This will and should open the database
 			mRegistered = true;
-			Util.log(null, Log.WARN, "Service registered name=" + cServiceName);
+			Util.log(null, Log.WARN, "Service registered name=" + cServiceName + " version=" + cCurrentVersion);
 
 			// Publish semaphore to activity manager service
 			XActivityManagerService.setSemaphore(mOndemandSemaphore);
-
-			// Get memory class to enable/disable caching
-			// http://stackoverflow.com/questions/2630158/detect-application-heap-size-in-android
-			int memoryClass = (int) (Runtime.getRuntime().maxMemory() / 1024L / 1024L);
-			mUseCache = (memoryClass >= 32);
-			Util.log(null, Log.WARN, "Memory class=" + memoryClass + " cache=" + mUseCache);
 
 			// Start a worker thread
 			mWorker = new Thread(new Runnable() {
@@ -159,17 +159,6 @@ public class PrivacyService {
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 			}
-
-		// Disable disk/network strict mode
-		// TODO: hook setThreadPolicy
-		try {
-			ThreadPolicy oldPolicy = StrictMode.getThreadPolicy();
-			ThreadPolicy newpolicy = new ThreadPolicy.Builder(oldPolicy).permitDiskReads().permitDiskWrites()
-					.permitNetwork().build();
-			StrictMode.setThreadPolicy(newpolicy);
-		} catch (Throwable ex) {
-			Util.bug(null, ex);
-		}
 
 		return mClient;
 	}
@@ -221,8 +210,8 @@ public class PrivacyService {
 		private ReentrantReadWriteLock mLock = new ReentrantReadWriteLock(true);
 		private ReentrantReadWriteLock mLockUsage = new ReentrantReadWriteLock(true);
 
-		private boolean mSelectCategory = true;
-		private boolean mSelectOnce = false;
+		private AtomicLong mCount = new AtomicLong(0);
+		private AtomicLong mRestricted = new AtomicLong(0);
 
 		private Map<CSetting, CSetting> mSettingCache = new HashMap<CSetting, CSetting>();
 		private Map<CRestriction, CRestriction> mAskedOnceCache = new HashMap<CRestriction, CRestriction>();
@@ -263,7 +252,7 @@ public class PrivacyService {
 				while (i < mListError.size()) {
 					String msg = mListError.get(i);
 					c += msg.length();
-					if (c < 5000)
+					if (c < 10000)
 						listError.add(msg);
 					else
 						break;
@@ -292,6 +281,16 @@ public class PrivacyService {
 		public void reportError(String message) throws RemoteException {
 			reportErrorInternal(message);
 		}
+
+		@Override
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public Map getStatistics() throws RemoteException {
+			Map map = new HashMap();
+			map.put("restriction_count", mCount.longValue());
+			map.put("restriction_restricted", mRestricted.longValue());
+			map.put("uptime_milliseconds", SystemClock.elapsedRealtime());
+			return map;
+		};
 
 		// Restrictions
 
@@ -356,17 +355,16 @@ public class PrivacyService {
 				}
 
 				// Update cache
-				if (mUseCache)
-					synchronized (mRestrictionCache) {
-						for (CRestriction key : new ArrayList<CRestriction>(mRestrictionCache.keySet()))
-							if (key.isSameMethod(restriction))
-								mRestrictionCache.remove(key);
-
-						CRestriction key = new CRestriction(restriction, restriction.extra);
-						if (mRestrictionCache.containsKey(key))
+				synchronized (mRestrictionCache) {
+					for (CRestriction key : new ArrayList<CRestriction>(mRestrictionCache.keySet()))
+						if (key.isSameMethod(restriction))
 							mRestrictionCache.remove(key);
-						mRestrictionCache.put(key, key);
-					}
+
+					CRestriction key = new CRestriction(restriction, restriction.extra);
+					if (mRestrictionCache.containsKey(key))
+						mRestrictionCache.remove(key);
+					mRestrictionCache.put(key, key);
+				}
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 				throw new RemoteException(ex.toString());
@@ -394,6 +392,11 @@ public class PrivacyService {
 			int userId = Util.getUserId(restriction.uid);
 			final PRestriction mresult = new PRestriction(restriction);
 
+			// Disable strict mode
+			ThreadPolicy oldPolicy = StrictMode.getThreadPolicy();
+			ThreadPolicy newPolicy = new ThreadPolicy.Builder(oldPolicy).permitDiskReads().permitDiskWrites().build();
+			StrictMode.setThreadPolicy(newPolicy);
+
 			try {
 				// No permissions enforced, but usage data requires a secret
 
@@ -407,41 +410,50 @@ public class PrivacyService {
 					return mresult;
 				}
 
-				// Check if can be restricted
-				if (!PrivacyManager.canRestrict(restriction.uid, getXUid(), restriction.restrictionName,
-						restriction.methodName)) {
-					mresult.asked = true;
-					return mresult;
-				}
-
 				// Get meta data
 				Hook hook = null;
 				if (restriction.methodName != null) {
 					hook = PrivacyManager.getHook(restriction.restrictionName, restriction.methodName);
 					if (hook == null)
-						// Can happen after replacing apk
+						// Can happen after updating
 						Util.log(null, Log.WARN, "Hook not found in service: " + restriction);
+					else if (hook.getFrom() != null) {
+						String version = getSetting(new PSetting(userId, "", PrivacyManager.cSettingVersion, "0.0")).value;
+						if (new Version(version).compareTo(hook.getFrom()) < 0)
+							if (hook.getReplacedRestriction() == null)
+								return mresult;
+							else {
+								restriction.restrictionName = hook.getReplacedRestriction();
+								restriction.methodName = hook.getReplacedMethod();
+								Util.log(null, Log.WARN, "Checking " + restriction + " instead of " + hook);
+							}
+					}
 				}
 
 				// Check for system component
-				if (usage && !PrivacyManager.isApplication(restriction.uid))
+				if (!PrivacyManager.isApplication(restriction.uid))
 					if (!getSettingBool(userId, PrivacyManager.cSettingSystem, false))
 						return mresult;
+
+				// Check if can be restricted
+				if (!PrivacyManager.canRestrict(restriction.uid, getXUid(), restriction.restrictionName,
+						restriction.methodName, false)) {
+					mresult.asked = true;
+					return mresult;
+				}
 
 				// Check if restrictions enabled
 				if (usage && !getSettingBool(restriction.uid, PrivacyManager.cSettingRestricted, true))
 					return mresult;
 
 				// Check cache
-				if (mUseCache) {
-					CRestriction key = new CRestriction(restriction, restriction.extra);
-					synchronized (mRestrictionCache) {
-						if (mRestrictionCache.containsKey(key)) {
-							cached = true;
-							CRestriction cache = mRestrictionCache.get(key);
-							mresult.restricted = cache.restricted;
-							mresult.asked = cache.asked;
-						}
+				CRestriction key = new CRestriction(restriction, restriction.extra);
+				synchronized (mRestrictionCache) {
+					if (mRestrictionCache.containsKey(key)) {
+						cached = true;
+						CRestriction cache = mRestrictionCache.get(key);
+						mresult.restricted = cache.restricted;
+						mresult.asked = cache.asked;
 					}
 				}
 
@@ -511,15 +523,8 @@ public class PrivacyService {
 					// Default dangerous
 					if (!methodFound && hook != null && hook.isDangerous())
 						if (!getSettingBool(userId, PrivacyManager.cSettingDangerous, false)) {
-							String version = getSetting(new PSetting(userId, "", PrivacyManager.cSettingVersion, "0.0")).value;
-							if (new Version(version).compareTo(new Version("2.0.32")) < 0) {
-								mresult.restricted = false;
-								if (hook.whitelist() == null)
-									mresult.asked = true;
-							} else {
-								mresult.restricted = false;
-								mresult.asked = (hook.whitelist() == null);
-							}
+							mresult.restricted = false;
+							mresult.asked = (hook.whitelist() == null);
 						}
 
 					// Check whitelist
@@ -551,23 +556,32 @@ public class PrivacyService {
 					}
 
 					// Update cache
-					if (mUseCache) {
-						CRestriction key = new CRestriction(mresult, restriction.extra);
-						synchronized (mRestrictionCache) {
-							if (mRestrictionCache.containsKey(key))
-								mRestrictionCache.remove(key);
-							mRestrictionCache.put(key, key);
-						}
+					CRestriction ukey = new CRestriction(mresult, restriction.extra);
+					synchronized (mRestrictionCache) {
+						if (mRestrictionCache.containsKey(ukey))
+							mRestrictionCache.remove(ukey);
+						mRestrictionCache.put(ukey, ukey);
 					}
 				}
 
 				// Ask to restrict
-				boolean ondemand = false;
-				if (!mresult.asked && usage)
-					ondemand = onDemandDialog(hook, restriction, mresult);
+				OnDemandResult oResult = new OnDemandResult();
+				if (!mresult.asked && usage) {
+					oResult = onDemandDialog(hook, restriction, mresult);
+
+					// Update cache
+					if (oResult.ondemand && !oResult.once) {
+						CRestriction okey = new CRestriction(mresult, restriction.extra);
+						synchronized (mRestrictionCache) {
+							if (mRestrictionCache.containsKey(okey))
+								mRestrictionCache.remove(okey);
+							mRestrictionCache.put(okey, okey);
+						}
+					}
+				}
 
 				// Notify user
-				if (!ondemand && mresult.restricted && usage && hook != null && hook.shouldNotify()) {
+				if (!oResult.ondemand && mresult.restricted && usage && hook != null && hook.shouldNotify()) {
 					notifyRestricted(restriction);
 					mresult.time = new Date().getTime();
 				}
@@ -578,14 +592,21 @@ public class PrivacyService {
 
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
+			} finally {
+				StrictMode.setThreadPolicy(oldPolicy);
 			}
 
 			long ms = System.currentTimeMillis() - start;
-			Util.log(null, Log.INFO,
+			Util.log(null, ms < PrivacyManager.cWarnServiceDelayMs ? Log.INFO : Log.WARN,
 					String.format("get service %s%s %d ms", restriction, (cached ? " (cached)" : ""), ms));
 
 			if (mresult.debug)
 				Util.logStack(null, Log.WARN);
+			if (usage) {
+				mCount.incrementAndGet();
+				if (mresult.restricted)
+					mRestricted.incrementAndGet();
+			}
 
 			return mresult;
 		}
@@ -758,10 +779,9 @@ public class PrivacyService {
 				}
 
 				// Clear caches
-				if (mUseCache)
-					synchronized (mRestrictionCache) {
-						mRestrictionCache.clear();
-					}
+				synchronized (mRestrictionCache) {
+					mRestrictionCache.clear();
+				}
 				synchronized (mAskedOnceCache) {
 					mAskedOnceCache.clear();
 				}
@@ -983,15 +1003,13 @@ public class PrivacyService {
 				}
 
 				// Update cache
-				if (mUseCache) {
-					CSetting key = new CSetting(setting.uid, setting.type, setting.name);
-					key.setValue(setting.value);
-					synchronized (mSettingCache) {
-						if (mSettingCache.containsKey(key))
-							mSettingCache.remove(key);
-						if (setting.value != null)
-							mSettingCache.put(key, key);
-					}
+				CSetting key = new CSetting(setting.uid, setting.type, setting.name);
+				key.setValue(setting.value);
+				synchronized (mSettingCache) {
+					if (mSettingCache.containsKey(key))
+						mSettingCache.remove(key);
+					if (setting.value != null)
+						mSettingCache.put(key, key);
 				}
 
 				// Clear restrictions for white list
@@ -1003,10 +1021,10 @@ public class PrivacyService {
 										hook.getName());
 								Util.log(null, Log.WARN, "Clearing cache for " + restriction);
 								synchronized (mRestrictionCache) {
-									for (CRestriction key : new ArrayList<CRestriction>(mRestrictionCache.keySet()))
-										if (key.isSameMethod(restriction)) {
-											Util.log(null, Log.WARN, "Removing " + key);
-											mRestrictionCache.remove(key);
+									for (CRestriction mkey : new ArrayList<CRestriction>(mRestrictionCache.keySet()))
+										if (mkey.isSameMethod(restriction)) {
+											Util.log(null, Log.WARN, "Removing " + mkey);
+											mRestrictionCache.remove(mkey);
 										}
 								}
 							}
@@ -1030,9 +1048,11 @@ public class PrivacyService {
 		}
 
 		@Override
-		@SuppressLint("DefaultLocale")
 		public PSetting getSetting(PSetting setting) throws RemoteException {
+			long start = System.currentTimeMillis();
 			int userId = Util.getUserId(setting.uid);
+
+			// Special case
 			if (Meta.cTypeAccountHash.equals(setting.type))
 				try {
 					setting.type = Meta.cTypeAccount;
@@ -1040,19 +1060,26 @@ public class PrivacyService {
 				} catch (Throwable ex) {
 					Util.bug(null, ex);
 				}
+
+			// Default result
 			PSetting result = new PSetting(setting.uid, setting.type, setting.name, setting.value);
+
+			// Disable strict mode
+			ThreadPolicy oldPolicy = StrictMode.getThreadPolicy();
+			ThreadPolicy newPolicy = new ThreadPolicy.Builder(oldPolicy).permitDiskReads().permitDiskWrites().build();
+			StrictMode.setThreadPolicy(newPolicy);
 
 			try {
 				// No permissions enforced
 
 				// Check cache
-				if (mUseCache && setting.value != null) {
-					CSetting key = new CSetting(setting.uid, setting.type, setting.name);
-					synchronized (mSettingCache) {
-						if (mSettingCache.containsKey(key)) {
-							result.value = mSettingCache.get(key).getValue();
-							return result;
-						}
+				CSetting key = new CSetting(setting.uid, setting.type, setting.name);
+				synchronized (mSettingCache) {
+					if (mSettingCache.containsKey(key)) {
+						result.value = mSettingCache.get(key).getValue();
+						if (result.value == null)
+							result.value = setting.value; // default value
+						return result;
 					}
 				}
 
@@ -1080,6 +1107,7 @@ public class PrivacyService {
 				}
 
 				// Execute statement
+				boolean found = false;
 				mLock.readLock().lock();
 				db.beginTransaction();
 				try {
@@ -1089,9 +1117,8 @@ public class PrivacyService {
 							stmtGetSetting.bindLong(1, setting.uid);
 							stmtGetSetting.bindString(2, setting.type);
 							stmtGetSetting.bindString(3, setting.name);
-							String value = stmtGetSetting.simpleQueryForString();
-							if (value != null)
-								result.value = value;
+							result.value = stmtGetSetting.simpleQueryForString();
+							found = true;
 						}
 					} catch (SQLiteDoneException ignored) {
 					}
@@ -1106,18 +1133,26 @@ public class PrivacyService {
 				}
 
 				// Add to cache
-				if (mUseCache && result.value != null) {
-					CSetting key = new CSetting(setting.uid, setting.type, setting.name);
-					key.setValue(result.value);
-					synchronized (mSettingCache) {
-						if (mSettingCache.containsKey(key))
-							mSettingCache.remove(key);
-						mSettingCache.put(key, key);
-					}
+				key.setValue(found ? result.value : null);
+				synchronized (mSettingCache) {
+					if (mSettingCache.containsKey(key))
+						mSettingCache.remove(key);
+					mSettingCache.put(key, key);
 				}
+
+				// Default value
+				if (result.value == null)
+					result.value = setting.value;
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
+			} finally {
+				StrictMode.setThreadPolicy(oldPolicy);
 			}
+
+			long ms = System.currentTimeMillis() - start;
+			Util.log(null, ms < PrivacyManager.cWarnServiceDelayMs ? Log.INFO : Log.WARN,
+					String.format("get service %s %d ms", setting, ms));
+
 			return result;
 		}
 
@@ -1190,10 +1225,9 @@ public class PrivacyService {
 				}
 
 				// Clear cache
-				if (mUseCache)
-					synchronized (mSettingCache) {
-						mSettingCache.clear();
-					}
+				synchronized (mSettingCache) {
+					mSettingCache.clear();
+				}
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 				throw new RemoteException(ex.toString());
@@ -1234,13 +1268,11 @@ public class PrivacyService {
 				}
 
 				// Clear caches
-				if (mUseCache) {
-					synchronized (mRestrictionCache) {
-						mRestrictionCache.clear();
-					}
-					synchronized (mSettingCache) {
-						mSettingCache.clear();
-					}
+				synchronized (mRestrictionCache) {
+					mRestrictionCache.clear();
+				}
+				synchronized (mSettingCache) {
+					mSettingCache.clear();
 				}
 				synchronized (mAskedOnceCache) {
 					mAskedOnceCache.clear();
@@ -1308,42 +1340,52 @@ public class PrivacyService {
 			}
 		}
 
+		// Helper classes
+
+		final class OnDemandResult {
+			public boolean ondemand = false;
+			public boolean once = false;
+		}
+
+		final class OnDemandDialogHolder {
+			public View dialog = null;
+			public CountDownLatch latch = new CountDownLatch(1);
+			public boolean reset = false;
+		}
+
 		// Helper methods
 
-		private boolean onDemandDialog(final Hook hook, final PRestriction restriction, final PRestriction result) {
+		private OnDemandResult onDemandDialog(final Hook hook, final PRestriction restriction, final PRestriction result) {
+			final OnDemandResult oResult = new OnDemandResult();
 			try {
 				int userId = Util.getUserId(restriction.uid);
 
-				// Without handler nothing can be done
-				if (mHandler == null)
-					return false;
-
 				// Check if application
 				if (!PrivacyManager.isApplication(restriction.uid))
-					return false;
+					return oResult;
 
 				// Check for exceptions
 				if (hook != null && !hook.canOnDemand())
-					return false;
+					return oResult;
 				if (!PrivacyManager.canRestrict(restriction.uid, getXUid(), restriction.restrictionName,
-						restriction.methodName))
-					return false;
+						restriction.methodName, false))
+					return oResult;
 
 				// Check if enabled
 				if (!getSettingBool(userId, PrivacyManager.cSettingOnDemand, true))
-					return false;
+					return oResult;
 				if (!getSettingBool(restriction.uid, PrivacyManager.cSettingOnDemand, false))
-					return false;
+					return oResult;
 
 				// Check version
 				String version = getSetting(new PSetting(userId, "", PrivacyManager.cSettingVersion, "0.0")).value;
 				if (new Version(version).compareTo(new Version("2.1.5")) < 0)
-					return false;
+					return oResult;
 
-				// Get am context
+				// Get activity manager context
 				final Context context = getContext();
 				if (context == null)
-					return false;
+					return oResult;
 
 				long token = 0;
 				try {
@@ -1355,11 +1397,17 @@ public class PrivacyService {
 					// Check for system application
 					if (appInfo.isSystem())
 						if (new Version(version).compareTo(new Version("2.0.38")) < 0)
-							return false;
+							return oResult;
 
 					// Check if activity manager agrees
 					if (!XActivityManagerService.canOnDemand())
-						return false;
+						return oResult;
+
+					// Check if activity manager locked
+					if (isAMLocked()) {
+						Util.log(null, Log.WARN, "On demand locked " + restriction);
+						return oResult;
+					}
 
 					// Go ask
 					Util.log(null, Log.WARN, "On demand " + restriction);
@@ -1367,23 +1415,45 @@ public class PrivacyService {
 					try {
 						// Check if activity manager still agrees
 						if (!XActivityManagerService.canOnDemand())
-							return false;
+							return oResult;
+
+						// Check if activity manager locked now
+						if (isAMLocked()) {
+							Util.log(null, Log.WARN, "On demand acquired locked " + restriction);
+							return oResult;
+						}
 
 						Util.log(null, Log.WARN, "On demanding " + restriction);
 
 						// Check if not asked before
-						CRestriction key = new CRestriction(restriction, restriction.extra);
+						CRestriction mkey = new CRestriction(restriction, restriction.extra);
 						synchronized (mRestrictionCache) {
-							if (mRestrictionCache.containsKey(key))
-								if (mRestrictionCache.get(key).asked) {
+							if (mRestrictionCache.containsKey(mkey))
+								if (mRestrictionCache.get(mkey).asked) {
 									Util.log(null, Log.WARN, "Already asked " + restriction);
-									return false;
+									result.restricted = mRestrictionCache.get(mkey).restricted;
+									result.asked = true;
+									return oResult;
 								}
 						}
+
 						synchronized (mAskedOnceCache) {
-							if (mAskedOnceCache.containsKey(key) && !mAskedOnceCache.get(key).isExpired()) {
+							if (mAskedOnceCache.containsKey(mkey) && !mAskedOnceCache.get(mkey).isExpired()) {
 								Util.log(null, Log.WARN, "Already asked once " + restriction);
-								return false;
+								result.restricted = mAskedOnceCache.get(mkey).restricted;
+								result.asked = true;
+								return oResult;
+							}
+						}
+
+						CRestriction ckey = new CRestriction(restriction, null);
+						ckey.setMethodName(null);
+						synchronized (mAskedOnceCache) {
+							if (mAskedOnceCache.containsKey(ckey) && !mAskedOnceCache.get(ckey).isExpired()) {
+								Util.log(null, Log.WARN, "Already asked once category " + restriction);
+								result.restricted = mAskedOnceCache.get(ckey).restricted;
+								result.asked = true;
+								return oResult;
 							}
 						}
 
@@ -1391,136 +1461,190 @@ public class PrivacyService {
 							CSetting skey = new CSetting(restriction.uid, hook.whitelist(), restriction.extra);
 							synchronized (mSettingCache) {
 								if (mSettingCache.containsKey(skey)) {
-									Util.log(null, Log.WARN, "Already asked " + skey);
-									return false;
+									String value = mSettingCache.get(skey).getValue();
+									if (value != null) {
+										Util.log(null, Log.WARN, "Already asked whitelist " + skey);
+										result.restricted = Boolean.parseBoolean(value);
+										result.asked = true;
+										return oResult;
+									}
 								}
 								for (String xextra : getXExtra(restriction, hook)) {
 									CSetting xkey = new CSetting(restriction.uid, hook.whitelist(), xextra);
 									if (mSettingCache.containsKey(xkey)) {
-										Util.log(null, Log.WARN, "Already asked " + skey);
-										return false;
+										String value = mSettingCache.get(xkey).getValue();
+										if (value != null) {
+											Util.log(null, Log.WARN, "Already asked whitelist " + xkey);
+											result.restricted = Boolean.parseBoolean(value);
+											result.asked = true;
+											return oResult;
+										}
 									}
 								}
 							}
 						}
 
-						final AlertDialogHolder holder = new AlertDialogHolder();
-						final CountDownLatch latch = new CountDownLatch(1);
+						// Build dialog view
+						final OnDemandDialogHolder holder = new OnDemandDialogHolder();
+						holder.dialog = getOnDemandView(restriction, hook, appInfo, result, context, holder, oResult);
 
-						// Run dialog in looper
+						// Build dialog parameters
+						final WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+						params.type = WindowManager.LayoutParams.TYPE_PHONE;
+						params.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+						params.systemUiVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE;
+						params.dimAmount = 0.85f;
+						params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+						params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+						params.format = PixelFormat.TRANSLUCENT;
+						params.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
+						params.gravity = Gravity.CENTER;
+
+						// Get window manager
+						final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+
+						// Show dialog
 						mHandler.post(new Runnable() {
 							@Override
-							@SuppressLint("InlinedApi")
 							public void run() {
-								try {
-									// Dialog
-									AlertDialog.Builder builder = getOnDemandDialogBuilder(restriction, hook, appInfo,
-											result, context, latch);
-									AlertDialog alertDialog = builder.create();
-									alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_PHONE);
-									alertDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-									alertDialog.getWindow().setSoftInputMode(
-											WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-									alertDialog.setCancelable(false);
-									alertDialog.setCanceledOnTouchOutside(false);
-									alertDialog.show();
-									holder.dialog = alertDialog;
-
-									// Hide status bar
-									// http://developer.android.com/training/system-ui/status.html
-									if (Build.VERSION.SDK_INT >= 16)
-										alertDialog.getWindow().getDecorView()
-												.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
-
-									// Progress bar
-									final ProgressBar mProgress = (ProgressBar) alertDialog
-											.findViewById(R.id.pbProgress);
-									mProgress.setMax(cMaxOnDemandDialog * 20);
-									mProgress.setProgress(cMaxOnDemandDialog * 20);
-
-									Runnable rProgress = new Runnable() {
-										@Override
-										public void run() {
-											AlertDialog dialog = holder.dialog;
-											if (dialog != null && dialog.isShowing() && mProgress.getProgress() > 0) {
-												mProgress.incrementProgressBy(-1);
-												mHandler.postDelayed(this, 50);
-											}
-										}
-									};
-									mHandler.postDelayed(rProgress, 50);
-								} catch (NameNotFoundException ex) {
-									latch.countDown();
-								} catch (Throwable ex) {
-									Util.bug(null, ex);
-									latch.countDown();
-								}
+								wm.addView(holder.dialog, params);
 							}
 						});
 
-						// Wait for dialog to complete
-						if (!latch.await(cMaxOnDemandDialog, TimeUnit.SECONDS)) {
-							Util.log(null, Log.WARN, "On demand dialog timeout " + restriction);
-							mHandler.post(new Runnable() {
-								@Override
-								public void run() {
-									AlertDialog dialog = holder.dialog;
-									if (dialog != null)
-										dialog.cancel();
+						// Update progress bar
+						Runnable runProgress = new Runnable() {
+							@Override
+							public void run() {
+								// Update progress bar
+								ProgressBar progressBar = (ProgressBar) holder.dialog.findViewById(R.id.pbProgress);
+								if (holder.dialog != null && holder.dialog.isShown() && progressBar.getProgress() > 0) {
+									progressBar.incrementProgressBy(-1);
+									mHandler.postDelayed(this, 50);
 								}
-							});
-						}
+
+								// Check if activity manager locked
+								if (isAMLocked()) {
+									Util.log(null, Log.WARN, "On demand dialog locked " + restriction);
+									((Button) holder.dialog.findViewById(R.id.btnDontKnow)).callOnClick();
+								}
+							}
+						};
+						mHandler.postDelayed(runProgress, 50);
+
+						// Enabled buttons after one second
+						boolean repeat = (SystemClock.elapsedRealtime() - mOnDemandLastAnswer < 1000);
+						mHandler.postDelayed(new Runnable() {
+							@Override
+							public void run() {
+								holder.dialog.findViewById(R.id.btnAllow).setEnabled(true);
+								holder.dialog.findViewById(R.id.btnDontKnow).setEnabled(true);
+								holder.dialog.findViewById(R.id.btnDeny).setEnabled(true);
+							}
+						}, repeat ? 0 : 1000);
+
+						// Handle reset button
+						((Button) holder.dialog.findViewById(R.id.btnReset))
+								.setOnClickListener(new View.OnClickListener() {
+									@Override
+									public void onClick(View view) {
+										((ProgressBar) holder.dialog.findViewById(R.id.pbProgress))
+												.setProgress(cMaxOnDemandDialog * 20);
+										holder.reset = true;
+										holder.latch.countDown();
+									}
+								});
+
+						// Wait for choice, reset or timeout
+						do {
+							holder.reset = false;
+							boolean choice = holder.latch.await(cMaxOnDemandDialog, TimeUnit.SECONDS);
+							if (holder.reset) {
+								holder.latch = new CountDownLatch(1);
+								Util.log(null, Log.WARN, "On demand reset " + restriction);
+							} else if (choice)
+								oResult.ondemand = true;
+							else
+								Util.log(null, Log.WARN, "On demand timeout " + restriction);
+						} while (holder.reset);
+						mOnDemandLastAnswer = SystemClock.elapsedRealtime();
+
+						// Dismiss dialog
+						mHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								View dialog = holder.dialog;
+								if (dialog != null)
+									wm.removeView(dialog);
+							}
+						});
+
 					} finally {
 						mOndemandSemaphore.release();
 					}
 				} finally {
 					Binder.restoreCallingIdentity(token);
 				}
+			} catch (NameNotFoundException ex) {
+				Util.log(null, Log.WARN, ex.toString());
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 			}
 
-			return true;
+			return oResult;
 		}
 
-		final class AlertDialogHolder {
-			public AlertDialog dialog = null;
-		}
-
-		private AlertDialog.Builder getOnDemandDialogBuilder(final PRestriction restriction, final Hook hook,
-				ApplicationInfoEx appInfo, final PRestriction result, Context context, final CountDownLatch latch)
-				throws NameNotFoundException {
+		@SuppressLint("InflateParams")
+		private View getOnDemandView(final PRestriction restriction, final Hook hook, ApplicationInfoEx appInfo,
+				final PRestriction result, Context context, final OnDemandDialogHolder holder,
+				final OnDemandResult oResult) throws NameNotFoundException, RemoteException {
 			// Get resources
 			String self = PrivacyService.class.getPackage().getName();
 			Resources resources = context.getPackageManager().getResourcesForApplication(self);
 
 			// Reference views
-			View view = LayoutInflater.from(context.createPackageContext(self, 0)).inflate(R.layout.ondemand, null);
+			final View view = LayoutInflater.from(context.createPackageContext(self, 0)).inflate(R.layout.ondemand,
+					null);
 			ImageView ivAppIcon = (ImageView) view.findViewById(R.id.ivAppIcon);
 			TextView tvUid = (TextView) view.findViewById(R.id.tvUid);
 			TextView tvAppName = (TextView) view.findViewById(R.id.tvAppName);
-			TextView tvAttempt = (TextView) view.findViewById(R.id.tvAttempt);
 			TextView tvCategory = (TextView) view.findViewById(R.id.tvCategory);
 			TextView tvFunction = (TextView) view.findViewById(R.id.tvFunction);
 			TextView tvParameters = (TextView) view.findViewById(R.id.tvParameters);
 			TableRow rowParameters = (TableRow) view.findViewById(R.id.rowParameters);
+			TextView tvDefault = (TextView) view.findViewById(R.id.tvDefault);
+			TextView tvInfoCategory = (TextView) view.findViewById(R.id.tvInfoCategory);
+			final CheckBox cbExpert = (CheckBox) view.findViewById(R.id.cbExpert);
 			final CheckBox cbCategory = (CheckBox) view.findViewById(R.id.cbCategory);
 			final CheckBox cbOnce = (CheckBox) view.findViewById(R.id.cbOnce);
+			final LinearLayout llWhiteList = (LinearLayout) view.findViewById(R.id.llWhiteList);
 			final CheckBox cbWhitelist = (CheckBox) view.findViewById(R.id.cbWhitelist);
 			final CheckBox cbWhitelistExtra1 = (CheckBox) view.findViewById(R.id.cbWhitelistExtra1);
 			final CheckBox cbWhitelistExtra2 = (CheckBox) view.findViewById(R.id.cbWhitelistExtra2);
+			final CheckBox cbWhitelistExtra3 = (CheckBox) view.findViewById(R.id.cbWhitelistExtra3);
+			ProgressBar mProgress = (ProgressBar) view.findViewById(R.id.pbProgress);
+			Button btnDeny = (Button) view.findViewById(R.id.btnDeny);
+			Button btnDontKnow = (Button) view.findViewById(R.id.btnDontKnow);
+			Button btnAllow = (Button) view.findViewById(R.id.btnAllow);
+
+			final int userId = Util.getUserId(Process.myUid());
+			boolean expert = getSettingBool(userId, PrivacyManager.cSettingODExpert, false);
+			boolean category = getSettingBool(userId, PrivacyManager.cSettingODCategory, true);
+			boolean once = getSettingBool(userId, PrivacyManager.cSettingODOnce, false);
+			expert = expert || !category || once;
+			final boolean whitelistDangerous = (hook != null && hook.isDangerous() && hook.whitelist() != null);
 
 			// Set values
 			if ((hook != null && hook.isDangerous()) || appInfo.isSystem())
-				view.setBackgroundColor(resources.getColor(R.color.color_dangerous_dark));
+				view.setBackgroundResource(R.color.color_dangerous_dialog);
+			else
+				view.setBackgroundResource(android.R.color.background_dark);
 
+			// Application information
 			ivAppIcon.setImageDrawable(appInfo.getIcon(context));
 			tvUid.setText(Integer.toString(appInfo.getUid()));
 			tvAppName.setText(TextUtils.join(", ", appInfo.getApplicationName()));
 
-			String defaultAction = resources.getString(result.restricted ? R.string.title_deny : R.string.title_allow);
-			tvAttempt.setText(resources.getString(R.string.title_attempt) + " (" + defaultAction + ")");
-
+			// Restriction information
 			int catId = resources.getIdentifier("restrict_" + restriction.restrictionName, "string", self);
 			tvCategory.setText(resources.getString(catId));
 			tvFunction.setText(restriction.methodName);
@@ -1528,12 +1652,33 @@ public class PrivacyService {
 				rowParameters.setVisibility(View.GONE);
 			else
 				tvParameters.setText(restriction.extra);
+			String defaultAction = resources.getString(result.restricted ? R.string.title_deny : R.string.title_allow);
+			tvDefault.setText(defaultAction);
 
-			cbCategory.setChecked(mSelectCategory);
-			cbOnce.setChecked(mSelectOnce);
+			// Help
+			int helpId = resources.getIdentifier("restrict_help_" + restriction.restrictionName, "string", self);
+			tvInfoCategory.setText(resources.getString(helpId));
+
+			// Expert mode
+			cbExpert.setChecked(expert);
+			if (expert) {
+				for (View child : Util.getViewsByTag((ViewGroup) view, "details"))
+					child.setVisibility(View.VISIBLE);
+				for (View child : Util.getViewsByTag((ViewGroup) view, "nodetails"))
+					child.setVisibility(View.GONE);
+			}
+			if (expert || whitelistDangerous)
+				llWhiteList.setVisibility(View.VISIBLE);
+
+			// Category
+			cbCategory.setChecked(category);
+
+			// Once
+			cbOnce.setChecked(once);
 			cbOnce.setText(String.format(resources.getString(R.string.title_once),
 					PrivacyManager.cRestrictionCacheTimeoutMs / 1000));
 
+			// Whitelisting
 			if (hook != null && hook.whitelist() != null && restriction.extra != null) {
 				cbWhitelist.setText(resources.getString(R.string.title_whitelist, restriction.extra));
 				cbWhitelist.setVisibility(View.VISIBLE);
@@ -1546,17 +1691,46 @@ public class PrivacyService {
 					cbWhitelistExtra2.setText(resources.getString(R.string.title_whitelist, xextra[1]));
 					cbWhitelistExtra2.setVisibility(View.VISIBLE);
 				}
+				if (xextra.length > 2) {
+					cbWhitelistExtra3.setText(resources.getString(R.string.title_whitelist, xextra[2]));
+					cbWhitelistExtra3.setVisibility(View.VISIBLE);
+				}
 			}
+
+			cbExpert.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					setSettingBool(userId, "", PrivacyManager.cSettingODExpert, isChecked);
+					if (!isChecked) {
+						setSettingBool(userId, "", PrivacyManager.cSettingODCategory, true);
+						setSettingBool(userId, "", PrivacyManager.cSettingODOnce, false);
+						cbCategory.setChecked(true);
+						cbOnce.setChecked(false);
+						cbWhitelist.setChecked(false);
+						cbWhitelistExtra1.setChecked(false);
+						cbWhitelistExtra2.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
+					}
+
+					for (View child : Util.getViewsByTag((ViewGroup) view, "details"))
+						child.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+					for (View child : Util.getViewsByTag((ViewGroup) view, "nodetails"))
+						child.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+
+					if (!whitelistDangerous)
+						llWhiteList.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+				}
+			});
 
 			// Category, once and whitelist exclude each other
 			cbCategory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 				@Override
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 					if (isChecked) {
-						cbOnce.setChecked(false);
 						cbWhitelist.setChecked(false);
 						cbWhitelistExtra1.setChecked(false);
 						cbWhitelistExtra2.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
 					}
 				}
 			});
@@ -1564,10 +1738,10 @@ public class PrivacyService {
 				@Override
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 					if (isChecked) {
-						cbCategory.setChecked(false);
 						cbWhitelist.setChecked(false);
 						cbWhitelistExtra1.setChecked(false);
 						cbWhitelistExtra2.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
 					}
 				}
 			});
@@ -1579,6 +1753,7 @@ public class PrivacyService {
 						cbOnce.setChecked(false);
 						cbWhitelistExtra1.setChecked(false);
 						cbWhitelistExtra2.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
 					}
 				}
 			});
@@ -1590,6 +1765,7 @@ public class PrivacyService {
 						cbOnce.setChecked(false);
 						cbWhitelist.setChecked(false);
 						cbWhitelistExtra2.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
 					}
 				}
 			});
@@ -1601,101 +1777,142 @@ public class PrivacyService {
 						cbOnce.setChecked(false);
 						cbWhitelist.setChecked(false);
 						cbWhitelistExtra1.setChecked(false);
+						cbWhitelistExtra3.setChecked(false);
+					}
+				}
+			});
+			cbWhitelistExtra3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					if (isChecked) {
+						cbCategory.setChecked(false);
+						cbOnce.setChecked(false);
+						cbWhitelist.setChecked(false);
+						cbWhitelistExtra1.setChecked(false);
+						cbWhitelistExtra2.setChecked(false);
 					}
 				}
 			});
 
-			// Ask
-			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context, AlertDialog.THEME_HOLO_DARK);
-			alertDialogBuilder.setTitle(resources.getString(R.string.app_name));
-			alertDialogBuilder.setView(view);
-			alertDialogBuilder.setIcon(resources.getDrawable(R.drawable.ic_launcher));
-			alertDialogBuilder.setPositiveButton(resources.getString(R.string.title_deny),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							// Deny
-							result.restricted = true;
-							if (!cbWhitelist.isChecked() && !cbWhitelistExtra1.isChecked()
-									&& !cbWhitelistExtra2.isChecked()) {
-								mSelectCategory = cbCategory.isChecked();
-								mSelectOnce = cbOnce.isChecked();
-							}
-							if (cbWhitelist.isChecked())
-								onDemandWhitelist(restriction, null, result, hook);
-							else if (cbWhitelistExtra1.isChecked())
-								onDemandWhitelist(restriction, getXExtra(restriction, hook)[0], result, hook);
-							else if (cbWhitelistExtra2.isChecked())
-								onDemandWhitelist(restriction, getXExtra(restriction, hook)[1], result, hook);
-							else if (cbOnce.isChecked())
-								onDemandOnce(restriction, result);
-							else
-								onDemandChoice(restriction, cbCategory.isChecked(), true);
-							latch.countDown();
-						}
-					});
-			alertDialogBuilder.setNegativeButton(resources.getString(R.string.title_allow),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							// Allow
-							result.restricted = false;
-							if (!cbWhitelist.isChecked() && !cbWhitelistExtra1.isChecked()
-									&& !cbWhitelistExtra2.isChecked()) {
-								mSelectCategory = cbCategory.isChecked();
-								mSelectOnce = cbOnce.isChecked();
-							}
-							if (cbWhitelist.isChecked())
-								onDemandWhitelist(restriction, null, result, hook);
-							else if (cbWhitelistExtra1.isChecked())
-								onDemandWhitelist(restriction, getXExtra(restriction, hook)[0], result, hook);
-							else if (cbWhitelistExtra2.isChecked())
-								onDemandWhitelist(restriction, getXExtra(restriction, hook)[1], result, hook);
-							else if (cbOnce.isChecked())
-								onDemandOnce(restriction, result);
-							else
-								onDemandChoice(restriction, cbCategory.isChecked(), false);
-							latch.countDown();
-						}
-					});
-			alertDialogBuilder.setNeutralButton(resources.getString(R.string.title_dontknow),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							// Deny once
-							result.restricted = true;
-							onDemandOnce(restriction, result);
-							latch.countDown();
-						}
-					});
-			return alertDialogBuilder;
+			// Setup progress bar
+			mProgress.setMax(cMaxOnDemandDialog * 20);
+			mProgress.setProgress(cMaxOnDemandDialog * 20);
+
+			btnAllow.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// Allow
+					result.restricted = false;
+					result.asked = true;
+					if (!cbWhitelist.isChecked() && !cbWhitelistExtra1.isChecked() && !cbWhitelistExtra2.isChecked()
+							&& !cbWhitelistExtra3.isChecked()) {
+						setSettingBool(userId, "", PrivacyManager.cSettingODCategory, cbCategory.isChecked());
+						setSettingBool(userId, "", PrivacyManager.cSettingODOnce, cbOnce.isChecked());
+					}
+					if (cbWhitelist.isChecked())
+						onDemandWhitelist(restriction, null, result, hook);
+					else if (cbWhitelistExtra1.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[0], result, hook);
+					else if (cbWhitelistExtra2.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[1], result, hook);
+					else if (cbWhitelistExtra3.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[2], result, hook);
+					else if (cbOnce.isChecked())
+						onDemandOnce(restriction, cbCategory.isChecked(), result, oResult);
+					else
+						onDemandChoice(restriction, cbCategory.isChecked(), false);
+					holder.latch.countDown();
+				}
+			});
+
+			btnDontKnow.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// Deny once
+					result.restricted = !(hook != null && hook.isDangerous());
+					result.asked = true;
+					onDemandOnce(restriction, false, result, oResult);
+					holder.latch.countDown();
+				}
+			});
+
+			btnDeny.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					// Deny
+					result.restricted = true;
+					result.asked = true;
+					if (!cbWhitelist.isChecked() && !cbWhitelistExtra1.isChecked() && !cbWhitelistExtra2.isChecked()
+							&& !cbWhitelistExtra3.isChecked()) {
+						setSettingBool(userId, "", PrivacyManager.cSettingODCategory, cbCategory.isChecked());
+						setSettingBool(userId, "", PrivacyManager.cSettingODOnce, cbOnce.isChecked());
+					}
+					if (cbWhitelist.isChecked())
+						onDemandWhitelist(restriction, null, result, hook);
+					else if (cbWhitelistExtra1.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[0], result, hook);
+					else if (cbWhitelistExtra2.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[1], result, hook);
+					else if (cbWhitelistExtra3.isChecked())
+						onDemandWhitelist(restriction, getXExtra(restriction, hook)[2], result, hook);
+					else if (cbOnce.isChecked())
+						onDemandOnce(restriction, cbCategory.isChecked(), result, oResult);
+					else
+						onDemandChoice(restriction, cbCategory.isChecked(), true);
+					holder.latch.countDown();
+				}
+			});
+
+			return view;
 		}
 
 		private String[] getXExtra(PRestriction restriction, Hook hook) {
 			List<String> listResult = new ArrayList<String>();
-			if (hook != null)
+			if (restriction.extra != null && hook != null)
 				if (hook.whitelist().equals(Meta.cTypeFilename)) {
-					String folder = new File(restriction.extra).getParent();
-					if (!TextUtils.isEmpty(folder))
-						listResult.add(folder + File.separatorChar + "*");
+					// Top folders of file name
+					File file = new File(restriction.extra);
+					for (int i = 1; i <= 3 && file != null; i++) {
+						String parent = file.getParent();
+						if (!TextUtils.isEmpty(parent))
+							listResult.add(parent + File.separatorChar + "*");
+						file = file.getParentFile();
+					}
+
 				} else if (hook.whitelist().equals(Meta.cTypeIPAddress)) {
-					int semi = restriction.extra.lastIndexOf(':');
-					String address = (semi >= 0 ? restriction.extra.substring(0, semi) : restriction.extra);
+					// sub-domain or sub-net
+					int colon = restriction.extra.lastIndexOf(':');
+					String address = (colon >= 0 ? restriction.extra.substring(0, colon) : restriction.extra);
 					if (Patterns.IP_ADDRESS.matcher(address).matches()) {
 						int dot = address.lastIndexOf('.');
 						listResult.add(address.substring(0, dot) + ".*"
-								+ (semi >= 0 ? restriction.extra.substring(semi) : ""));
-						if (semi >= 0)
+								+ (colon >= 0 ? restriction.extra.substring(colon) : ""));
+						if (colon >= 0)
 							listResult.add(address.substring(0, dot) + ".*:*");
 					} else {
 						int dot = restriction.extra.indexOf('.');
 						if (dot > 0) {
 							listResult.add('*' + restriction.extra.substring(dot));
-							if (semi >= 0)
-								listResult.add('*' + restriction.extra.substring(dot, semi) + ":*");
+							if (colon >= 0)
+								listResult.add('*' + restriction.extra.substring(dot, colon) + ":*");
 						}
 					}
 				}
+
+				else if (hook.whitelist().equals(Meta.cTypeUrl)) {
+					// Top folders of file name
+					Uri uri = Uri.parse(restriction.extra);
+					if ("file".equals(uri.getScheme())) {
+						File file = new File(uri.getPath());
+						for (int i = 1; i <= 3 && file != null; i++) {
+							String parent = file.getParent();
+							if (!TextUtils.isEmpty(parent))
+								listResult.add(parent + File.separatorChar + "*");
+							file = file.getParentFile();
+						}
+					}
+				}
+
 			return listResult.toArray(new String[0]);
 		}
 
@@ -1712,10 +1929,19 @@ public class PrivacyService {
 			}
 		}
 
-		private void onDemandOnce(final PRestriction restriction, final PRestriction result) {
-			Util.log(null, Log.WARN, (result.restricted ? "Deny" : "Allow") + " once " + restriction);
+		private void onDemandOnce(final PRestriction restriction, boolean category, final PRestriction result,
+				final OnDemandResult oResult) {
+			Util.log(null, Log.WARN, (result.restricted ? "Deny" : "Allow") + " once " + restriction + " category="
+					+ category);
+
+			oResult.once = true;
 			result.time = new Date().getTime() + PrivacyManager.cRestrictionCacheTimeoutMs;
-			CRestriction key = new CRestriction(restriction, restriction.extra);
+
+			CRestriction key = new CRestriction(result, restriction.extra);
+			if (category) {
+				key.setMethodName(null);
+				key.setExtra(null);
+			}
 			synchronized (mAskedOnceCache) {
 				if (mAskedOnceCache.containsKey(key))
 					mAskedOnceCache.remove(key);
@@ -1735,8 +1961,8 @@ public class PrivacyService {
 						prevRestricted = mRestrictionCache.get(key).restricted;
 				}
 
-				Util.log(null, Log.WARN, "On demand choice " + restriction + " category=" + category + "/"
-						+ prevRestricted + " restrict=" + restrict);
+				Util.log(null, Log.WARN, "On demand choice " + restriction + " category=" + category + " restrict="
+						+ restrict + " prev=" + prevRestricted);
 
 				if (category || (restrict && restrict != prevRestricted)) {
 					// Set category restriction
@@ -1748,12 +1974,13 @@ public class PrivacyService {
 					// Clear category on change
 					for (Hook hook : PrivacyManager.getHooks(restriction.restrictionName))
 						if (!PrivacyManager.canRestrict(restriction.uid, getXUid(), restriction.restrictionName,
-								hook.getName())) {
+								hook.getName(), false)) {
 							result.methodName = hook.getName();
 							result.restricted = false;
 							result.asked = true;
 							setRestrictionInternal(result);
 						} else {
+							// TODO: preserve asked state
 							result.methodName = hook.getName();
 							result.restricted = restrict && !hook.isDangerous();
 							result.asked = category || (hook.isDangerous() && hook.whitelist() == null);
@@ -1772,7 +1999,7 @@ public class PrivacyService {
 
 				// Mark state as changed
 				setSettingInternal(new PSetting(restriction.uid, "", PrivacyManager.cSettingState,
-						Integer.toString(ActivityMain.STATE_CHANGED)));
+						Integer.toString(ApplicationInfoEx.STATE_CHANGED)));
 
 				// Update modification time
 				setSettingInternal(new PSetting(restriction.uid, "", PrivacyManager.cSettingModifyTime,
@@ -1820,6 +2047,14 @@ public class PrivacyService {
 			return Boolean.parseBoolean(value);
 		}
 
+		private void setSettingBool(int uid, String type, String name, boolean value) {
+			try {
+				setSettingInternal(new PSetting(uid, type, name, Boolean.toString(value)));
+			} catch (RemoteException ex) {
+				Util.bug(null, ex);
+			}
+		}
+
 		private void enforcePermission(int uid) {
 			if (uid >= 0)
 				if (Util.getUserId(uid) != Util.getUserId(Binder.getCallingUid()))
@@ -1828,6 +2063,23 @@ public class PrivacyService {
 			int callingUid = Util.getAppId(Binder.getCallingUid());
 			if (callingUid != getXUid() && callingUid != Process.SYSTEM_UID)
 				throw new SecurityException("xuid=" + mXUid + " calling=" + Binder.getCallingUid());
+		}
+
+		private boolean isAMLocked() {
+			try {
+				Class<?> cam = Class.forName("com.android.server.am.ActivityManagerService");
+				Object am = cam.getMethod("self").invoke(null);
+				boolean locked = Thread.holdsLock(am);
+				if (locked) {
+					boolean freeze = getSettingBool(0, PrivacyManager.cSettingFreeze, false);
+					if (freeze)
+						return false;
+				}
+				return locked;
+			} catch (Throwable ex) {
+				Util.bug(null, ex);
+				return false;
+			}
 		}
 
 		private Context getContext() {

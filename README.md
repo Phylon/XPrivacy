@@ -9,22 +9,22 @@ The ultimate, yet easy to use, privacy manager for Android
 Index
 -----
 
-* [Description](https://github.com/M66B/XPrivacy#description)
-* [Features](https://github.com/M66B/XPrivacy#features)
-* [Restrictions](https://github.com/M66B/XPrivacy#restrictions)
-* [Limitations](https://github.com/M66B/XPrivacy#limitations)
-* [Compatibility](https://github.com/M66B/XPrivacy#compatibility)
-* [Installation](https://github.com/M66B/XPrivacy#installation)
-* [Upgrading](https://github.com/M66B/XPrivacy#upgrading)
-* [Usage](https://github.com/M66B/XPrivacy#usage)
-* [Permissions](https://github.com/M66B/XPrivacy#permissions)
-* [Frequently asked questions](https://github.com/M66B/XPrivacy#frequently-asked-questions)
-* [Support](https://github.com/M66B/XPrivacy#support)
+* [Description](#description)
+* [Features](#features)
+* [Restrictions](#restrictions)
+* [Limitations](#limitations)
+* [Compatibility](#compatibility)
+* [Installation](#installation)
+* [Upgrading](#upgrading)
+* [Usage](#usage)
+* [Permissions](#permissions)
+* [Frequently asked questions](#frequently-asked-questions)
+* [Support](#support)
 * [Changelog](https://github.com/M66B/XPrivacy/blob/master/CHANGELOG.md)
-* [Similar solutions](https://github.com/M66B/XPrivacy#similar-solutions)
-* [News](https://github.com/M66B/XPrivacy#news)
-* [Contributing](https://github.com/M66B/XPrivacy#contributing)
-* [License](https://github.com/M66B/XPrivacy#license)
+* [Similar solutions](#similar-solutions)
+* [News](#news)
+* [Contributing](#contributing)
+* [License](#license)
 
 Description
 -----------
@@ -71,7 +71,7 @@ Depending on the function, XPrivacy skips execution of the original function
 (for example when an application tries to set a proximity alert)
 or alters the result of the original function (for example to return an empty message list).
 
-XPrivacy has been tested with Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat),
+XPrivacy has been tested with Android version 4.0.3 - 4.4.4 (ICS, JellyBean, KitKat),
 and is reported to work with most Android variants, including stock ROMs.
 Root access is needed to install the Xposed framework.
 
@@ -115,7 +115,7 @@ Features
 
 * Simple to use
 * No need to patch anything (no source, no [smali](https://code.google.com/p/smali/) or anything else)
-* For any (stock) variant of Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat)
+* For any (stock) variant of Android version 4.0.3 - 4.4.4 (ICS, JellyBean, KitKat)
 * Newly installed applications are restricted by default
 * Displays data actually used by an application
 * Option to restrict on demand
@@ -145,9 +145,11 @@ For easy usage, data is restricted by category:
 <a name="calling"></a>
 * Calling
 	* prevent calls from being placed
+	* prevent SIP calls from being placed
 	* prevent SMS messages from being sent
 	* prevent MMS messages from being sent
 	* prevent data messages from being sent
+	* return an empty call log
 <a name="clipboard"></a>
 * Clipboard
 	* prevent paste from clipboard (both manual and from an application)
@@ -159,13 +161,14 @@ For easy usage, data is restricted by category:
 		* content://com.android.contacts/data
 		* content://com.android.contacts/phone_lookup
 		* content://com.android.contacts/profile
+		* SIM card
 <a name="dictionary"></a>
 * Dictionary
 	* return an empty user dictionary
 <a name="email"></a>
 * E-mail
-	* return an empty list of accounts, e-mails, etc (provider)
-	* return an empty list of accounts, e-mails, etc (Gmail)
+	* return an empty list of accounts, e-mails, etc (standard)
+	* return an empty list of accounts, e-mails, etc (G-mail)
 <a name="identification"></a>
 * Identification
 	* return a fake Android ID
@@ -177,7 +180,8 @@ For easy usage, data is restricted by category:
 	* return a fake system property CID (Card Identification Register = SD card serial number)
 	* return file not found for /sys/block/.../cid
 	* return file not found for /sys/class/.../cid
-	* return fake input device descriptor
+	* return a fake input device descriptor
+	* return a fake USB id/name/number
 <a name="internet"></a>
 * Internet
 	* revoke permission to internet access
@@ -190,20 +194,8 @@ For easy usage, data is restricted by category:
 	* return fake supplicant disconnected state
 <a name="IPC"></a>
 * IPC
-	* Direct inter process calls
-		* android.accounts.IAccountManager
-		* android.app.IActivityManager
-		* android.content.IClipboard
-		* android.net.IConnectivityManager
-		* android.content.IContentService
-		* android.location.ILocationManager
-		* com.android.internal.telephony.ITelephonyRegistry
-		* com.android.internal.telephony.ITelephonyRegistryMSim
-		* android.content.pm.IPackageManager
-		* com.android.internal.telephony.IPhoneSubInfo
-		* com.android.internal.telephony.msim.IPhoneSubInfoMSim
-		* android.view.IWindowManager
-		* android.net.wifi.IWifiManager
+	* Binder
+	* Reflection
 <a name="location"></a>
 * Location
 	* return a random or set location (also for Google Play services)
@@ -271,7 +263,6 @@ For easy usage, data is restricted by category:
 		* Serial number (ICCID): fake
 	* return empty [APN](http://en.wikipedia.org/wiki/Access_Point_Name) list
 	* return no currently used APN
-	* return an empty call log
 	* prevent phone state from being sent to an application
 		* Call forwarding indication
 		* Call state changed (ringing, off-hook)
@@ -284,9 +275,10 @@ For easy usage, data is restricted by category:
 * Sensors
 	* return an empty default sensor
 	* return an empty list of sensors
-	* restrict indiviual sensors:
+	* restrict individual sensors:
 		* acceleration
 		* gravity
+		* heartrate
 		* humidity
 		* light
 		* magnetic
@@ -308,6 +300,7 @@ For easy usage, data is restricted by category:
 	* revoke permission to the external storage (SD card)
 	* revoke permission to [MTP](http://en.wikipedia.org/wiki/Media_Transfer_Protocol)
 	* return fake unmounted state
+	* prevent access to provided assets (media, etc)
 <a name="system"></a>
 * System
 	* return an empty list of installed applications
@@ -336,15 +329,10 @@ Limitations
 * Because it is static, [Build.SERIAL](http://developer.android.com/reference/android/os/Build.html#SERIAL) can only be randomized when an application starts, and there is no usage data
 * Due to a bug in Chromium, the user agent cannot be restricted in all cases ([issue](https://github.com/M66B/XPrivacy/issues/825))
 * Due to a custom implementation, the clipboard cannot be restricted on some Samsung stock ROMs ([issue](https://github.com/M66B/XPrivacy/issues/857))
-* It is not possible to restrict external hardware MAC addresses or the external IP address
+* It is not possible to restrict external hardware MAC addresses or the external IP address, see also [FAQ 33](#FAQ33)
 * You cannot restrict *Configuration.MCC/MNC* on demand
 * Allowing contacts for SIM-contacts isn't supported (who is using these anyway these days?)
 * Calendars and contacts cannot be restricted for specific accounts; it is all or nothing; however, it is possible to allow individual contacts with a [pro license](http://www.xprivacy.eu/)
-* The on demand restricting dialog does sometimes not respond and is sometimes hidden
-	* A known situation is starting an application from a notification for the restrictions *inet*, *sdcard* and *media*
-	* Another known situation are some restrictions triggered by hardware buttons, like the volume buttons
-	* This cannot be fixed, because the on demand dialog is locking a system process
-	* The on demand dialog will timeout after 20 seconds, so this is not a major problem
 * You cannot restrict the serial number and the Android ID for XPrivacy, because it is used for submitting restrictions
 	* The Android ID is salted with the serial number and MD5 hashed before communicating with the crowd sourced restrictions server
 	* This means that the crowd sourced restrictions server never gets the serial number nor the Android ID
@@ -358,15 +346,13 @@ You can still restrict the XPrivacy app's access to accounts, contacts, and othe
 Compatibility
 -------------
 
-XPrivacy has been tested with Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat)
+XPrivacy has been tested with Android version 4.0.3 - 4.4.4 (ICS, JellyBean, KitKat)
 and is reported to work with most Android variants, including stock ROMs.
 
 **XPrivacy is incompatible with LBE Security Master** ([issue](https://github.com/M66B/XPrivacy/issues/1231))
 
-XPrivacy seems to be incompatible with [OLYMPUS Image Share](https://play.google.com/store/apps/details?id=jp.olympusimaging.oishare)
-for unknown reasons ([issue](https://github.com/M66B/XPrivacy/issues/1607)).
-
-XPrivacy seems to cause camera lag on a Samsung Galaxy Note II ([issue](https://github.com/M66B/XPrivacy/issues/715))
+You need to use the quirk "noresolve" when using [GoPro](https://play.google.com/store/apps/details?id=com.gopro.smarty)
+([issue](https://github.com/M66B/XPrivacy/issues/1751)).
 
 Restricting *Internet/connect* and/or *View/loadURL* for the stock browser doesn't prevent loading of pages ([issue](https://github.com/M66B/XPrivacy/issues/1685))
 
@@ -378,8 +364,8 @@ Installation
 Installation may seem lengthy, but you can actually do it quickly:
 
 1. Requirements:
-	* Android version 4.0.3 - 4.4.3 (ICS, JellyBean, KitKat); check with *System Settings* > *About phone* > *Android version*
-	* Read about [compatibility](https://github.com/M66B/XPrivacy#compatibility) before installing
+	* Android version 4.0.3 - 4.4.4 (ICS, JellyBean, KitKat); check with *System Settings* > *About phone* > *Android version*
+	* Read about [compatibility](#compatibility) before installing
 1. **Make a backup**
 1. If you haven't already, root your device; the rooting procedure depends on your device's brand and model.
 	* You can find a guide [here](http://www.androidcentral.com/root) for most devices
@@ -394,7 +380,7 @@ Installation may seem lengthy, but you can actually do it quickly:
 1. Reboot
 
 I do not recommend using XPrivacy in combination with any of the
-[similar solutions](https://github.com/M66B/XPrivacy#similar-solutions),
+[similar solutions](#similar-solutions),
 because this could result in conflicts and potential data leaks.
 
 There is an unofficial backported Gingerbread version available [here](http://forum.xda-developers.com/showpost.php?p=44034334).
@@ -407,6 +393,8 @@ If you want to uninstall XPrivacy, you have two options:
 
 Don't forget to reboot.
 
+To save space you can delete the folder */data/system/xprivacy* after uninstalling.
+
 Upgrading
 ---------
 
@@ -414,6 +402,7 @@ Upgrading
 * **Do not remove the previous version** (or else your settings will get lost)
 * Download the new version
 * Install the new version over the previous version
+* Wait until the Xposed installer recognizes the update (else XPrivacy might not be enabled)
 * Start the new version once (else Android will not send the boot completed event)
 * Reboot your device
 * Wait until the XPrivacy update service has been completed (showing 100%)
@@ -490,6 +479,8 @@ will erase all application specific settings so that the global settings will ag
 The restrictions template (in the main menu) is applied automatically to newly installed applications
 and manually via the menu item "Apply template" in the application's detailed view.
 
+You can find an overview of all menu items [here](https://github.com/M66B/XPrivacy/blob/master/MENU.md).
+
 **Using XPrivacy is entirely at your own risk**
 
 Permissions
@@ -505,7 +496,7 @@ XPrivacy asks for the following Android permissions:
 * Wakelock: to keep the processor running during batch operations
 
 If desired, you can even restrict XPrivacy from accessing any of the above,
-but there are some [limitations](https://github.com/M66B/XPrivacy#limitations).
+but there are some [limitations](#limitations).
 
 Please note that any Xposed module has basically root permissions and can therefore circumvent any Android permission.
 
@@ -553,12 +544,19 @@ You can automate backups by sending an intent:
 adb shell am start -a biz.bokhorst.xprivacy.action.EXPORT
 ```
 
+If you want to specify a file name:
+
+```
+adb shell am start -a biz.bokhorst.xprivacy.action.EXPORT -e FileName /sdcard/test.xml
+```
+
 You can do this with [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm), for example:
 
 * New task: Any name you like
 * Action Category: Misc/Send Intent
 * Action: biz.bokhorst.xprivacy.action.EXPORT
 * Target: Activity
+* Extra: FileName:/sdcard/test.xml (optional, to specify an export location and file name)
 
 <a name="FAQ6"></a>
 **(6) Precisely which functions does XPrivacy restrict?**
@@ -729,6 +727,7 @@ No, because it's too difficult to implement something like XPrivacy on these OS'
 * time(zone)
 * nag-screens, popups
 * statusbar notifications
+* installing shortcuts
 
 No, because I don't consider this information to be privacy-sensitive data, i.e., able to identify you and collect data about you. I am happy to add new restrictions for data that is really privacy-sensitive.
 
@@ -740,7 +739,8 @@ The [calendar](http://developer.android.com/guide/topics/providers/calendar-prov
 and [contacts](http://developer.android.com/guide/topics/providers/contacts-provider.html) API are quite complicated.
 There is also a better way to accomplish this.
 You can use different users on your device with different accounts.
-To enable multiple users for a phone you can follow [these instructions](http://www.pocketables.com/2013/03/how-to-enable-multiple-user-mode-on-cyanogenmod-10-1-and-some-other-android-4-2-2-roms.html).
+To enable multiple users for a phone you can follow [these instructions](http://www.pocketables.com/2013/03/how-to-enable-multiple-user-mode-on-cyanogenmod-10-1-and-some-other-android-4-2-2-roms.html)
+or install [this Xposed mod](http://forum.xda-developers.com/xposed/modules/xposed-multiple-users-phone-t2676516).
 Note that the user selector on the lockscreen works in landscape only.
 
 <a name="FAQ26"></a>
@@ -833,11 +833,11 @@ The same applies to the IMEI number, additionally complicated by legal issues in
 	* Setting any category to restricted will not restrict any of its dangerous functions
 * The default after dialog timeout is taken from the current restriction settings
 * There are four possibilities for the restriction / on demand checkboxes:
-	* [ ] [ ] You will not receive an on demand popup, the permission will always be allowed
-	* [ ] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be allowed once
-	* [x] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be denied once
-	* [x] [ ] You will not receive an on demand popup, the permission will always be denied
-* Be aware that the on demand popups are globally, which could be an issue if your device has multiple users. Unfortunately this cannot be change.
+	* a. [&#8194;] [&#8194;] You will not receive an on demand popup, the permission will always be allowed
+	* b. [&#8194;] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be allowed once
+	* c. [V] [?] You will receive an on demand popup, if this times out or the screen is locked the permission will be denied once
+	* d. [V] [&#8194;] You will not receive an on demand popup, the permission will always be denied
+* Be aware that the on demand popups are global, which could be an issue if your device has multiple users. Unfortunately this cannot be changed.
 
 <a name="FAQ35"></a>
 **(35) Do I need the pro enabler to use the pro license?**
@@ -926,7 +926,7 @@ So, please describe the exact steps to reproduce the problem and/or provide a lo
 
 If you requested a new feature: there is a feature stop since version 2.x.
 
-See [here](https://github.com/M66B/XPrivacy#support) for more details.
+See [here](#support) for more details.
 
 <a name="FAQ53"></a>
 **(53) What happens if I make XPrivacy device administrator?**
@@ -1001,6 +1001,106 @@ since toggle restrictions works on the visible applications by default.
 There is one exception to this: exporting will be done for all applications by default,
 since the export is meant as full backup.
 
+<a name="FAQ63"></a>
+**(63) How can I troubleshoot an issue believed to be caused by XPrivacy?**
+
+* Always make sure you have a backup (XPrivacy export or nandroid)
+* Most issues are caused by a "bad" restriction, so try to reproduce the issue and check the main usage data
+* Verify that the issue is actually caused by XPrivacy
+	* Turn on Airplane mode
+	* Disable XPrivacy in the XPosed installer (don't forget to reboot)
+	* Check if the issue is still present, if yes, XPrivacy is not causing the issue
+* Finding the culprit:
+	* Clear all XPrivacy restrictions (don't forget to reboot)
+	* Check if the issue is still present
+	* Import half of your restrictions, check if the issue is still present
+	* If yes, clear again and import only half of these restrictions
+	* Continue this process until you have found the "bad" restriction
+* If following these steps fails to find the issue, please follow the [Support](#support) instructions
+
+<a name="FAQ64"></a>
+**(64) Is the on demand dialog always shown?**
+
+That depends on your ROM version.
+On stock ROM 4.4.4 (Nexus 5) the on demand dialog is always shown.
+On older or customized ROMs the on demand dialog is almost always shown,
+except sometimes for the functions *inet*, *sdcard* and *media*
+and sometimes for restrictions triggered by the hardware buttons, for example the volume buttons.
+This is to prevent the on demand dialog from freezing (locking up), caused by an internal Android lock.
+This freeze cannot be fixed by XPrivacy.
+
+If you want to have the on demand dialog always shown, then you can add the *quirk* "freeze".
+
+<a name="FAQ65"></a>
+**(65) My data is still visible!**
+
+The data might be cached by the application, so you might have to wait a while until the cache is updated.
+It may even be necessary to restart the application or reboot your device to clear the cache.
+
+The Google Maps view can look like a part of an application, but is in fact not.
+Even if your current position is shown on the map, it doesn't mean the application knows your current position.
+
+<a name="FAQ66"></a>
+**(66) How can I directly start ... ?**
+
+See [question #5](#FAQ5) for how to start an export and for details on Tasker.
+
+Similarly you can start other activities:
+
+* Application settings
+
+```
+am start -a biz.bokhorst.xprivacy.action.APPLICATION --ei Uid 10123
+am start -a biz.bokhorst.xprivacy.action.APPLICATION --ei Uid 10123 --ei Action 1
+am start -a biz.bokhorst.xprivacy.action.APPLICATION --ei Uid 10123 --ei Action 2
+am start -a biz.bokhorst.xprivacy.action.APPLICATION --ei Uid 10123 -e RestrictionName location
+am start -a biz.bokhorst.xprivacy.action.APPLICATION --ei Uid 10123 -e RestrictionName location -e MethodName GMS.addGeofences
+```
+
+Action 1 means clear; action 2 means settings.
+
+* Usage data
+
+```
+am start -a biz.bokhorst.xprivacy.action.USAGE
+am start -a biz.bokhorst.xprivacy.action.USAGE --ei Uid 10123
+```
+
+* Export, import, submit, fetch, toggle
+
+```
+am start -a biz.bokhorst.xprivacy.action.EXPORT
+am start -a biz.bokhorst.xprivacy.action.EXPORT --eia UidList 10123,10124 --ez Interactive true
+am start -a biz.bokhorst.xprivacy.action.IMPORT
+am start -a biz.bokhorst.xprivacy.action.IMPORT --eia UidList 10123,10124 --ez Interactive true
+am start -a biz.bokhorst.xprivacy.action.SUBMIT --eia UidList 10123,10124 --ez Interactive true
+am start -a biz.bokhorst.xprivacy.action.FETCH --eia UidList 10123,10124 --ez Interactive true
+am start -a biz.bokhorst.xprivacy.action.TOGGLE --eia UidList 10123,10124 --ez Interactive true
+```
+
+With Tasker, you can create shortcuts on your homescreen:
+
+* Create a task and give it a name (Tasker)
+* Create a shortcut on your homescreen (launcher)
+* Choose shortcut: "Task Shortcut" (launcher)
+* Task Selection: "your_usage_data_task" (Tasker)
+* Task Shortcut Icon: tap the *Image Select* button (lower right) and choose an icon (for example the XPrivacy icon) (Tasker)
+* Create icon: tap the back button to finish creating the shortcut (Tasker)
+
+<a name="FAQ67"></a>
+**(67) I get 'refused' or 'forbidden' while submitting/fetching/navigating to the crowd sourced restrictions!**
+
+This probably means your IP address has been black listed.
+Mostly this is because of spamming or other kind of abuses.
+TOR exit nodes and VPS servers are often black listed.
+Maybe your PC is infected and sending spam without your knowledge.
+
+You can check if [your IP address](http://www.whatismyip.com/) is black listed by checking if it is mentioned on one of these lists:
+
+* [Spamhaus DROP List](http://www.spamhaus.org/drop/drop.lasso)
+* [Spamhaus EDROP List](http://www.spamhaus.org/drop/edrop.lasso)
+* [Stop Forum Spam](http://www.stopforumspam.com/search) (30 days or younger)
+
 Support
 -------
 
@@ -1025,21 +1125,23 @@ It is already enough work to support the official versions from the last stable 
 
 ### Bugs
 
-If you encounter a bug please [create an issue](https://github.com/M66B/XPrivacy/issues).
-
-Include a [logcat](#FAQ14) when relevant (use [gist](https://gist.github.com/) or a similar service).
-Try to keep the logcat as brief as possible, searching in large logcats is no fun and not useful.
-
-**Do not forget to enable XPrivacy logging using the settings menu!**
+If you encounter a bug, please [create an issue](https://github.com/M66B/XPrivacy/issues).
 
 Please describe the exact steps to reproduce the issue, including the wrong and expected result,
 and include information about your device type, Android and XPrivacy version.
 
+To increase the chance I can find and fix the bug, please read [this](http://www.chiark.greenend.org.uk/~sgtatham/bugs.html).
+
+Include a [logcat](#FAQ14) when relevant (use [gist](https://gist.github.com/) or a similar service).
+Try to keep the logcat as brief as possible, searching in large logcats is no fun and not useful.
+
+**One bug report per issue please!**
+
+**Do not forget to enable XPrivacy logging using the settings menu!**
+
 **Before submitting any issue please make sure you are running the latest version of XPrivacy.**
 
 **Before submitting any issue please make sure XPrivacy is causing the problem by disabling XPrivacy.**
-
-**One bug report per issue please!**
 
 ### Feature requests
 
@@ -1055,7 +1157,13 @@ Please [read this](http://forum.xda-developers.com/showpost.php?p=52644313&postc
 
 ### Questions
 
-If you have any question, you can leave a message in the [XDA XPrivacy forum thread](http://forum.xda-developers.com/showthread.php?p=42488236).
+If you have any question, please leave a message in the [XDA XPrivacy forum thread](http://forum.xda-developers.com/showthread.php?p=42488236).
+More people are following the support forum than the GitHub issue tracker, which increases your chance to get a helpful answer.
+Moreover, the answers given might be beneficial to more people than you alone.
+
+**Please do not ask questions using GitHub issues!**
+
+GitHub issues are for bug reports and feature requests.
 
 Changelog
 ---------
@@ -1194,6 +1302,8 @@ Testing:
 
 Serious contributors do not have to donate for the [pro version](http://www.xprivacy.eu/).
 New translations are considered as a serious contribution, but translating a few lines of text is not.
+
+The goal of the project is to provide a decent, free and open source privacy solution for Android to as many as possible people.
 
 Please note that you agree to the license below by contributing, including the copyrights.
 

@@ -121,6 +121,14 @@ public class PrivacyManager {
 	public final static String cSettingMigrated = "Migrated";
 	public final static String cSettingCid = "Cid";
 	public final static String cSettingLac = "Lac";
+	public final static String cSettingBlacklist = "Blacklist";
+	public final static String cSettingNoResolve = "NoResolve";
+	public final static String cSettingFreeze = "Freeze";
+	public final static String cSettingPermMan = "PermMan";
+	public final static String cSettingHookIPC = "HookIPC";
+	public final static String cSettingODExpert = "ODExpert";
+	public final static String cSettingODCategory = "ODCategory";
+	public final static String cSettingODOnce = "ODOnce";
 
 	// Special value names
 	public final static String cValueRandom = "#Random#";
@@ -128,6 +136,8 @@ public class PrivacyManager {
 
 	// Constants
 	public final static int cXposedAppProcessMinVersion = 46;
+	public final static int cWarnServiceDelayMs = 100;
+	public final static int cWarnHookDelayMs = 100;
 
 	private final static int cMaxExtra = 128;
 	private final static String cDeface = "DEFACE";
@@ -148,7 +158,8 @@ public class PrivacyManager {
 	static {
 		List<String> listRestriction = getRestrictions();
 
-		for (Hook hook : Meta.get()) {
+		List<Hook> listHook = Meta.get();
+		for (Hook hook : listHook) {
 			String restrictionName = hook.getRestrictionName();
 
 			// Check restriction
@@ -179,6 +190,7 @@ public class PrivacyManager {
 							mPermission.get(aPermission).add(hook);
 					}
 		}
+		Util.log(null, Log.WARN, listHook.size() + " restrictions");
 	}
 
 	public static List<String> getRestrictions() {
@@ -283,7 +295,7 @@ public class PrivacyManager {
 		if (uid <= 0)
 			return false;
 		if (secret == null) {
-			Util.log(null, Log.ERROR, "Secret null restriction=" + restrictionName + "/" + methodName);
+			Util.log(null, Log.ERROR, "Secret missing restriction=" + restrictionName + "/" + methodName);
 			Util.logStack(hook, Log.ERROR);
 			secret = "";
 		}
@@ -353,7 +365,8 @@ public class PrivacyManager {
 
 		// Result
 		long ms = System.currentTimeMillis() - start;
-		Util.log(hook, Log.INFO, String.format("get client %s%s %d ms", result, (cached ? " (cached)" : ""), ms));
+		Util.log(hook, ms < cWarnServiceDelayMs ? Log.INFO : Log.WARN,
+				String.format("get client %s%s %d ms", result, (cached ? " (cached)" : ""), ms));
 
 		return result.restricted;
 	}
@@ -380,11 +393,11 @@ public class PrivacyManager {
 		for (String rRestrictionName : listRestriction)
 			listPRestriction.add(new PRestriction(uid, rRestrictionName, methodName, restricted, asked));
 
-		// Make exceptions for dangerous methods
+		// Make exceptions
 		if (methodName == null)
 			for (String rRestrictionName : listRestriction)
 				for (Hook md : getHooks(rRestrictionName)) {
-					if (!canRestrict(uid, Process.myUid(), rRestrictionName, md.getName()))
+					if (!canRestrict(uid, Process.myUid(), rRestrictionName, md.getName(), false))
 						listPRestriction.add(new PRestriction(uid, rRestrictionName, md.getName(), false, true));
 					else if (md.isDangerous())
 						listPRestriction.add(new PRestriction(uid, rRestrictionName, md.getName(), false, md
@@ -394,11 +407,17 @@ public class PrivacyManager {
 		setRestrictionList(listPRestriction);
 	}
 
-	public static boolean canRestrict(int uid, int xuid, String restrictionName, String methodName) {
+	public static boolean canRestrict(int uid, int xuid, String restrictionName, String methodName, boolean system) {
 		int _uid = Util.getAppId(uid);
+		int userId = Util.getUserId(uid);
 
 		if (_uid == Process.SYSTEM_UID && PrivacyManager.cIdentification.equals(restrictionName))
 			return false;
+
+		if (system)
+			if (!isApplication(_uid))
+				if (!getSettingBool(userId, PrivacyManager.cSettingSystem, false))
+					return false;
 
 		// @formatter:off
 		if ((_uid == Util.getAppId(xuid)) &&
@@ -415,7 +434,7 @@ public class PrivacyManager {
 	}
 
 	public static void updateState(int uid) {
-		setSetting(uid, cSettingState, Integer.toString(ActivityMain.STATE_CHANGED));
+		setSetting(uid, cSettingState, Integer.toString(ApplicationInfoEx.STATE_CHANGED));
 		setSetting(uid, cSettingModifyTime, Long.toString(System.currentTimeMillis()));
 	}
 
@@ -480,7 +499,8 @@ public class PrivacyManager {
 		}
 
 		// Mark as new/changed
-		setSetting(uid, cSettingState, Integer.toString(ActivityMain.STATE_ATTENTION));
+		setSetting(uid, cSettingState, Integer.toString(restrictionName == null ? ApplicationInfoEx.STATE_CHANGED
+				: ApplicationInfoEx.STATE_ATTENTION));
 
 		// Change app modification time
 		setSetting(uid, cSettingModifyTime, Long.toString(System.currentTimeMillis()));
@@ -530,6 +550,7 @@ public class PrivacyManager {
 		boolean hasOndemand = false;
 		List<PRestriction> listPRestriction = new ArrayList<PRestriction>();
 		for (String rRestrictionName : listRestriction) {
+			// Cleanup
 			if (clear)
 				deleteRestrictions(uid, rRestrictionName, false);
 
@@ -539,45 +560,59 @@ public class PrivacyManager {
 			boolean parentRestricted = parentValue.contains("true");
 			boolean parentAsked = (!ondemand || parentValue.contains("asked"));
 			hasOndemand = hasOndemand || !parentAsked;
+
+			// Merge
 			PRestriction parentMerge;
 			if (clear)
 				parentMerge = new PRestriction(uid, rRestrictionName, null, parentRestricted, parentAsked);
 			else
 				parentMerge = getRestrictionEx(uid, rRestrictionName, null);
-			listPRestriction.add(new PRestriction(uid, rRestrictionName, null, parentMerge.restricted
-					|| parentRestricted, parentMerge.asked && parentAsked));
+
+			// Apply
+			if (canRestrict(uid, Process.myUid(), rRestrictionName, null, true))
+				listPRestriction.add(new PRestriction(uid, rRestrictionName, null, parentMerge.restricted
+						|| parentRestricted, parentMerge.asked && parentAsked));
 
 			// Childs
 			if (methods)
-				for (Hook hook : getHooks(rRestrictionName)) {
-					String settingName = rRestrictionName + "." + hook.getName();
-					String value = getSetting(userId, templateName, settingName, null);
-					if (value == null)
-						value = Boolean.toString(parentRestricted && !hook.isDangerous())
-								+ (parentAsked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked" : "+ask");
-					boolean restricted = value.contains("true");
-					boolean asked = (!ondemand || value.contains("asked"));
-					PRestriction childMerge;
-					if (clear)
-						childMerge = new PRestriction(uid, rRestrictionName, hook.getName(), parentRestricted
-								&& restricted, parentAsked || asked);
-					else
-						childMerge = getRestrictionEx(uid, rRestrictionName, hook.getName());
-					if ((parentRestricted && !restricted) || (!parentAsked && asked) || hook.isDangerous() || !clear) {
-						PRestriction child = new PRestriction(uid, rRestrictionName, hook.getName(),
-								(parentRestricted && restricted) || childMerge.restricted, (parentAsked || asked)
-										&& childMerge.asked);
-						listPRestriction.add(child);
+				for (Hook hook : getHooks(rRestrictionName))
+					if (canRestrict(uid, Process.myUid(), rRestrictionName, hook.getName(), true)) {
+						// Child
+						String settingName = rRestrictionName + "." + hook.getName();
+						String childValue = getSetting(userId, templateName, settingName, null);
+						if (childValue == null)
+							childValue = Boolean.toString(parentRestricted && !hook.isDangerous())
+									+ (parentAsked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked"
+											: "+ask");
+						boolean restricted = childValue.contains("true");
+						boolean asked = (!ondemand || childValue.contains("asked"));
+
+						// Merge
+						PRestriction childMerge;
+						if (clear)
+							childMerge = new PRestriction(uid, rRestrictionName, hook.getName(), parentRestricted
+									&& restricted, parentAsked || asked);
+						else
+							childMerge = getRestrictionEx(uid, rRestrictionName, hook.getName());
+
+						// APply
+						if ((parentRestricted && !restricted) || (!parentAsked && asked) || hook.isDangerous()
+								|| !clear) {
+							PRestriction child = new PRestriction(uid, rRestrictionName, hook.getName(),
+									(parentRestricted && restricted) || childMerge.restricted, (parentAsked || asked)
+											&& childMerge.asked);
+							listPRestriction.add(child);
+						}
 					}
-				}
 		}
+
+		// Apply result
 		setRestrictionList(listPRestriction);
 		if (hasOndemand)
 			PrivacyManager.setSetting(uid, PrivacyManager.cSettingOnDemand, Boolean.toString(true));
 	}
 
-	// White listing
-	// TODO: add specialized get to privacy service
+	// White/black listing
 
 	public static Map<String, TreeMap<String, Boolean>> listWhitelisted(int uid, String type) {
 		checkCaller();
@@ -723,8 +758,8 @@ public class PrivacyManager {
 
 		long ms = System.currentTimeMillis() - start;
 		if (!willExpire && !cSettingLog.equals(name))
-			Util.log(null, Log.INFO, String.format("get setting uid=%d %s/%s=%s%s %d ms", uid, type, name, value,
-					(cached ? " (cached)" : ""), ms));
+			Util.log(null, ms < cWarnServiceDelayMs ? Log.INFO : Log.WARN, String.format(
+					"get setting uid=%d %s/%s=%s%s %d ms", uid, type, name, value, (cached ? " (cached)" : ""), ms));
 
 		return value;
 	}
@@ -1013,6 +1048,9 @@ public class PrivacyManager {
 				return -1;
 			}
 
+		if (name.equals("USB"))
+			return cDeface;
+
 		// Fallback
 		Util.log(null, Log.ERROR, "Fallback value name=" + name);
 		Util.logStack(null, Log.ERROR);
@@ -1040,6 +1078,8 @@ public class PrivacyManager {
 
 		// 1 degree ~ 111111 m
 		// 1 m ~ 0,000009 degrees
+		if (location == null)
+			location = new Location(cDeface);
 		location.setLatitude(Float.parseFloat(sLat) + (Math.random() * 2.0 - 1.0) * location.getAccuracy() * 9e-6);
 		location.setLongitude(Float.parseFloat(sLon) + (Math.random() * 2.0 - 1.0) * location.getAccuracy() * 9e-6);
 		location.setAltitude(Float.parseFloat(sAlt) + (Math.random() * 2.0 - 1.0) * location.getAccuracy());

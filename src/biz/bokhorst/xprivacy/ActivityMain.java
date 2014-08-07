@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -81,15 +80,12 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 	private Handler mProHandler = new Handler();
 
-	public static final int STATE_ATTENTION = 0;
-	public static final int STATE_CHANGED = 1;
-	public static final int STATE_SHARED = 2;
-
 	private static final int SORT_BY_NAME = 0;
 	private static final int SORT_BY_UID = 1;
 	private static final int SORT_BY_INSTALL_TIME = 2;
 	private static final int SORT_BY_UPDATE_TIME = 3;
 	private static final int SORT_BY_MODIFY_TIME = 4;
+	private static final int SORT_BY_STATE = 5;
 
 	private static final int ACTIVITY_LICENSE = 0;
 	private static final int LICENSED = 0x0100;
@@ -123,23 +119,30 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			case SORT_BY_NAME:
 				return sortOrder * appInfo0.compareTo(appInfo1);
 			case SORT_BY_UID:
-				// default lowest first
+				// Default lowest first
 				return sortOrder * (appInfo0.getUid() - appInfo1.getUid());
 			case SORT_BY_INSTALL_TIME:
-				// default newest first
+				// Default newest first
 				Long iTime0 = appInfo0.getInstallTime(ActivityMain.this);
 				Long iTime1 = appInfo1.getInstallTime(ActivityMain.this);
 				return sortOrder * iTime1.compareTo(iTime0);
 			case SORT_BY_UPDATE_TIME:
-				// default newest first
+				// Default newest first
 				Long uTime0 = appInfo0.getUpdateTime(ActivityMain.this);
 				Long uTime1 = appInfo1.getUpdateTime(ActivityMain.this);
 				return sortOrder * uTime1.compareTo(uTime0);
 			case SORT_BY_MODIFY_TIME:
-				// default newest first
+				// Default newest first
 				Long mTime0 = appInfo0.getModificationTime(ActivityMain.this);
 				Long mTime1 = appInfo1.getModificationTime(ActivityMain.this);
 				return sortOrder * mTime1.compareTo(mTime0);
+			case SORT_BY_STATE:
+				Integer state0 = appInfo0.getState(ActivityMain.this);
+				Integer state1 = appInfo1.getState(ActivityMain.this);
+				if (state0.compareTo(state1) == 0)
+					return sortOrder * appInfo0.compareTo(appInfo1);
+				else
+					return sortOrder * state0.compareTo(state1);
 			}
 			return 0;
 		}
@@ -166,7 +169,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 		// Import license file
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction()))
-			if (Util.importProLicense(new File(getIntent().getData().getEncodedPath())) != null)
+			if (Util.importProLicense(new File(getIntent().getData().getPath())) != null)
 				Toast.makeText(this, getString(R.string.menu_pro), Toast.LENGTH_LONG).show();
 
 		// Set layout
@@ -304,7 +307,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			mAppAdapter.notifyDataSetChanged();
 
 		if (Intent.ACTION_VIEW.equals(intent.getAction()))
-			Util.importProLicense(new File(intent.getData().getEncodedPath()));
+			Util.importProLicense(new File(intent.getData().getPath()));
 	}
 
 	@Override
@@ -620,6 +623,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		alertDialog.show();
 	}
 
+	@SuppressLint("InflateParams")
 	private void optionTemplate() {
 		// Build view
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -770,9 +774,19 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 		// Show version
 		try {
-			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			int userId = Util.getUserId(Process.myUid());
+			Version currentVersion = new Version(Util.getSelfVersionName(this));
+			Version storedVersion = new Version(
+					PrivacyManager.getSetting(userId, PrivacyManager.cSettingVersion, "0.0"));
+			boolean migrated = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingMigrated, false);
+			String versionName = currentVersion.toString();
+			if (currentVersion.compareTo(storedVersion) != 0)
+				versionName += "/" + storedVersion.toString();
+			if (!migrated)
+				versionName += "!";
+			int versionCode = Util.getSelfVersionCode(this);
 			TextView tvVersion = (TextView) dlgAbout.findViewById(R.id.tvVersion);
-			tvVersion.setText(String.format(getString(R.string.app_version), pInfo.versionName, pInfo.versionCode));
+			tvVersion.setText(String.format(getString(R.string.app_version), versionName, versionCode));
 		} catch (Throwable ex) {
 			Util.bug(null, ex);
 		}
@@ -834,6 +848,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			mAppAdapter.selectAllVisible();
 	}
 
+	@SuppressLint("InflateParams")
 	private void optionSort() {
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View view = inflater.inflate(R.layout.sort, null);
@@ -856,6 +871,9 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			break;
 		case SORT_BY_MODIFY_TIME:
 			rgSMode.check(R.id.rbSModified);
+			break;
+		case SORT_BY_STATE:
+			rgSMode.check(R.id.rbSState);
 			break;
 		}
 		cbSInvert.setChecked(mSortInvert);
@@ -885,6 +903,9 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 						case R.id.rbSModified:
 							mSortMode = SORT_BY_MODIFY_TIME;
 							break;
+						case R.id.rbSState:
+							mSortMode = SORT_BY_STATE;
+							break;
 						}
 						mSortInvert = cbSInvert.isChecked();
 
@@ -902,6 +923,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		alertDialog.show();
 	}
 
+	@SuppressLint("InflateParams")
 	private void optionFilter() {
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View view = inflater.inflate(R.layout.filters, null);
@@ -1031,6 +1053,14 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		((ScrollView) findViewById(R.id.svTutorialDetails)).setVisibility(View.VISIBLE);
 		int userId = Util.getUserId(Process.myUid());
 		PrivacyManager.setSetting(userId, PrivacyManager.cSettingTutorialMain, Boolean.FALSE.toString());
+
+		Dialog dlgUsage = new Dialog(this);
+		dlgUsage.requestWindowFeature(Window.FEATURE_LEFT_ICON);
+		dlgUsage.setTitle(R.string.title_usage_header);
+		dlgUsage.setContentView(R.layout.usage);
+		dlgUsage.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, getThemed(R.attr.icon_launcher));
+		dlgUsage.setCancelable(true);
+		dlgUsage.show();
 	}
 
 	// Tasks
@@ -1153,6 +1183,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		}
 
 		@Override
+		@SuppressLint("InflateParams")
 		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 			final ViewHolder holder;
 			if (convertView == null) {
@@ -1177,13 +1208,10 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			if (holder.restricted || !holder.asked)
 				for (Hook hook : PrivacyManager.getHooks(restrictionName)) {
 					String settingName = restrictionName + "." + hook.getName();
-					String childValue = PrivacyManager.getSetting(
-							userId,
-							getTemplate(),
-							settingName,
-							Boolean.toString(holder.restricted && !hook.isDangerous())
-									+ (holder.asked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked"
-											: "+ask"));
+					String childValue = PrivacyManager.getSetting(userId, getTemplate(), settingName, null);
+					if (childValue == null)
+						childValue = Boolean.toString(holder.restricted && !hook.isDangerous())
+								+ (holder.asked || (hook.isDangerous() && hook.whitelist() == null) ? "+asked" : "+ask");
 					if (!childValue.contains("true"))
 						partialRestricted = true;
 					if (childValue.contains("asked"))
@@ -1253,6 +1281,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		}
 
 		@Override
+		@SuppressLint("InflateParams")
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView,
 				ViewGroup parent) {
 			final ViewHolder holder;
@@ -1659,6 +1688,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 			private RState rstate;
 			private boolean gondemand;
 			private boolean ondemand;
+			private boolean can;
 
 			public HolderTask(int thePosition, ViewHolder theHolder, ApplicationInfoEx theAppInfo) {
 				position = thePosition;
@@ -1694,6 +1724,10 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 					// Get restriction/ask state
 					rstate = new RState(xAppInfo.getUid(), mRestrictionName, null);
 
+					// Get can restrict
+					can = PrivacyManager.canRestrict(rstate.mUid, Process.myUid(), rstate.mRestrictionName,
+							rstate.mMethodName, true);
+
 					return holder;
 				}
 				return null;
@@ -1709,10 +1743,10 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 						holder.llAppType.setBackgroundColor(Color.TRANSPARENT);
 
 					// Display state
-					if (state == STATE_ATTENTION)
+					if (state == ApplicationInfoEx.STATE_ATTENTION)
 						holder.vwState.setBackgroundColor(getResources().getColor(
 								getThemed(R.attr.color_state_attention)));
-					else if (state == STATE_SHARED)
+					else if (state == ApplicationInfoEx.STATE_SHARED)
 						holder.vwState
 								.setBackgroundColor(getResources().getColor(getThemed(R.attr.color_state_shared)));
 					else
@@ -1753,13 +1787,10 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 					holder.imgCbRestricted.setVisibility(View.VISIBLE);
 
 					// Display enabled state
-					boolean can = enabled
-							&& PrivacyManager.canRestrict(rstate.mUid, Process.myUid(), rstate.mRestrictionName,
-									rstate.mMethodName);
-					holder.tvName.setEnabled(can);
-					holder.imgCbRestricted.setEnabled(can);
-					holder.imgCbAsk.setEnabled(can);
-					holder.llName.setEnabled(can);
+					holder.tvName.setEnabled(enabled && can);
+					holder.imgCbRestricted.setEnabled(enabled && can);
+					holder.imgCbAsk.setEnabled(enabled && can);
+					holder.llName.setEnabled(enabled && can);
 
 					// Display selection
 					if (mListAppSelected.contains(xAppInfo))
@@ -1943,9 +1974,9 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 
 			private void showState() {
 				state = xAppInfo.getState(ActivityMain.this);
-				if (state == STATE_ATTENTION)
+				if (state == ApplicationInfoEx.STATE_ATTENTION)
 					holder.vwState.setBackgroundColor(getResources().getColor(getThemed(R.attr.color_state_attention)));
-				else if (state == STATE_SHARED)
+				else if (state == ApplicationInfoEx.STATE_SHARED)
 					holder.vwState.setBackgroundColor(getResources().getColor(getThemed(R.attr.color_state_shared)));
 				else
 					holder.vwState
@@ -1954,6 +1985,7 @@ public class ActivityMain extends ActivityBase implements OnItemSelectedListener
 		}
 
 		@Override
+		@SuppressLint("InflateParams")
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ViewHolder holder;
 			if (convertView == null) {
