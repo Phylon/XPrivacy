@@ -66,14 +66,14 @@
     <string name="msg_restart">Richiesto riavvio</string>
     <string name="msg_register">Per favore registra il tuo dispositivo</string>
     <string name="msg_email">Per favore inserisci il tuo indirizzo e-mail:</string>
-    <string name="msg_registered">Controlla la e-mail per attivare il dispositivo</string>
+    <string name="msg_registered">Controlla l\'e-mail per attivare il dispositivo</string>
     <string name="msg_service">Servizio di aggiornamento in funzione</string>
     <string name="msg_migrating" formatted="false">Migrazione %s</string>
     <string name="msg_randomizing" formatted="false">Randomizzazione %s</string>
     <string name="msg_upgrading" formatted="false">Aggiornamento %s</string>
     <string name="msg_support_info">Un controllo interno è fallito, vuoi inviare le informazioni di supporto?</string>
     <string name="msg_restrictedby">Ristretto da XPrivacy</string>
-    <string name="msg_service_missing">Servizio Privacy non trovato; hai attivato XPrivacy nell\'installatore di Xposed e riavviato il dispositivo</string>
+    <string name="msg_service_missing">Servizio Privacy non trovato; hai attivato XPrivacy nell\'installatore di Xposed e riavviato il dispositivo?</string>
     <string name="msg_service_version">Servizio Privacy conflitto di versione; hai riavviato il dispositivo dopo l\'aggiornamento di XPrivacy?</string>
     <string name="msg_first"><b>Grande cura è stata posta nello sviluppo e verifica di XPrivacy,
 tuttavia non è possibile garantire che funzioni perfettamente su qualunque dispositivo e per qualsiasi applicazione.
@@ -97,15 +97,42 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="restrict_phone">Telefono (ID, numeri, chiamate)</string>
     <string name="restrict_sensors">Sensori</string>
     <string name="restrict_storage">Memoria (media, scheda SD)</string>
-    <string name="restrict_shell">Shell (comandi, super utente)</string>
+    <string name="restrict_shell">Shell (comandi, superutente)</string>
     <string name="restrict_system">Sistema (applicazioni installate)</string>
     <string name="restrict_view">Visualizza (browser)</string>
+    <string name="restrict_help_view">Restringe l\'accesso alle azioni e alle informazioni di tipo view</string>
+    <string name="restrict_help_system">Restringe l\'accesso alle informazioni di sistema, come le applicazioni installate</string>
+    <string name="restrict_help_shell">Restringe l\'accesso ai comandi di shell,compresi i comandi superutente</string>
+    <string name="restrict_help_storage">Restringe l\'accesso alla memoria, come i file nella tua scheda SD o nella memoria interna</string>
+    <string name="restrict_help_sensors">Restringe l\'accesso ai sensori, come il sensore di movimento</string>
+    <string name="restrict_help_phone">Restringe l\'accesso alle informazioni del telefono, come il tuo numero</string>
+    <string name="restrict_help_overlay">Restringe le finestre sovrapposte per prevenire il phishing</string>
+    <string name="restrict_help_notifications">Restringe l\'accesso alle notifiche di sistema e delle applicazioni e alla messaggistica Google cloud</string>
+    <string name="restrict_help_nfc">Restringe l\'accesso alle comunicazioni in prossimità</string>
+    <string name="restrict_help_network">Restringe l\'accesso alle informazioni di rete, come indirizzi IP e MAC e rete Wi-Fi</string>
+    <string name="restrict_help_messages">Restringe l\'accesso ai messaggi memorizzati e ricevuti (SMS/MMS) e ai messaggi vocali</string>
+    <string name="restrict_help_media">Restringe l\'accesso alla fotocamera (foto e video) e al microfono</string>
+    <string name="restrict_help_location">Restringe l\'accesso alla tua località precisa e approssimata</string>
+    <string name="restrict_help_ipc">Restringe le comunicazioni tra processi, quando utilizzate per eludere altre restrizioni</string>
+    <string name="restrict_help_internet">Restringe l\'accesso ad internet</string>
+    <string name="restrict_help_identification">Restringe informazioni che possono identificarti, come il numero di serie del dispositivo</string>
+    <string name="restrict_help_email">Restringe l\'accesso alle informazioni e-mail, come indirizzi e messaggi (solo applicazione standard e G-mail)</string>
+    <string name="restrict_help_dictionary">Restringe l\'accesso al dizionario utente</string>
+    <string name="restrict_help_contacts">Restringe l\'accesso alle informazioni sui tuoi contatti</string>
+    <string name="restrict_help_clipboard">Restringe l\'accesso alle informazioni negli appunti</string>
+    <string name="restrict_help_calling">Restringe le chiamate a numeri di telefono, l\'invio di messaggi (SMS/MMS) e l\'accesso al registro chiamate</string>
+    <string name="restrict_help_calendar">Restringe l\'accesso alle informazioni del calendario, come gli appuntamenti</string>
+    <string name="restrict_help_browser">Restringe l\'accesso alle informazioni del browser, come i segnalibri e lo storico dei file scaricati</string>
+    <string name="restrict_help_accounts">Restringe l\'accesso alle informazioni dell\'account, come il tuo account Google che include l\'indirizzo G-mail</string>
+    <string name="whitelist_address">Indirizzi</string>
     <string name="whitelist_ipaddress">Indirizzi IP</string>
     <string name="whitelist_library">Librerie native</string>
+    <string name="whitelist_method">Nomi metodi</string>
     <string name="whitelist_filename">Nomi file</string>
     <string name="whitelist_command">Comandi Shell</string>
     <string name="whitelist_url">URLs</string>
-    <string name="whitelist_proc">/proc</string>
+    <string name="whitelist_transaction">Transazioni</string>
+    <string name="whitelist_permission">Permessi</string>
     <string name="title_restrict">Seleziona per restringere:</string>
     <string name="title_check_whitelist">Seleziona per consentire</string>
     <string name="title_fused">Filtra per dati di utilizzo</string>
@@ -121,6 +148,7 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="title_sinstalled">Per data di installazione</string>
     <string name="title_supdated">Per data di aggiornamento</string>
     <string name="title_smodified">Per data di modifica (XPrivacy)</string>
+    <string name="title_sstate">Per stato (XPrivacy)</string>
     <string name="title_sinvert">Inverti</string>
     <string name="title_attempt">Tentativo d\'uso di:</string>
     <string name="title_category">Categoria:</string>
@@ -128,16 +156,30 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="title_parameters">Parametri:</string>
     <string name="title_applycat">Applica a intera categoria</string>
     <string name="title_once">Una volta per %1$s secondi</string>
-    <string name="title_whitelist">Whitelist \'%s\'</string>
+    <string name="title_whitelist">White/blacklist \'%s\'</string>
     <string name="title_allow">Consenti</string>
     <string name="title_deny">Rifiuta</string>
+    <string name="title_dontknow">Non so</string>
     <string name="title_pleasesubmit">Per favore sottoponi le tue restrizioni per aiutare gli altri</string>
     <string name="title_permissions">Permessi</string>
     <string name="title_set_restrict">Restringi</string>
     <string name="title_template_category">Applica modello (categorie)</string>
     <string name="title_template_full">Applica modello (categorie+funzioni)</string>
+    <string name="title_template_merge">Applica modello (unisci)</string>
     <string name="title_enable_ondemand">Abilita restrizioni su richiesta</string>
     <string name="title_disable_ondemand">Disabilita restrizioni su richiesta</string>
+    <string name="title_ondemand_default">Allo scadere:</string>
+    <string name="title_ondemand_reset">Reset</string>
+    <string name="title_default">Default</string>
+    <string name="title_alternate">Opzione</string>
+    <string name="title_usage_header">Utilizzo</string>
+    <string name="title_usage_text_1">1. Cerca l\'applicazione da restringere nella lista principale</string>
+    <string name="title_usage_text_2">2. Tocca l\'icona dell\'applicazione</string>
+    <string name="title_usage_text_3">3. Tocca la prima casella di controllo di una categoria che desideri restringere</string>
+    <string name="title_usage_footer">Usa il buon senso, non aspettarti che l\'accesso internet funzioni se hai ristretto la categoria Internet, ecc.</string>
+    <string name="title_toggle_dangerous">Premi a lungo su una intestazione per gestire le funzioni pericolose</string>
+    <string name="title_ondemand_category">Applicando all\'intera categoria le funzioni verranno riportate ai valori di default</string>
+    <string name="title_function_help">Documentazione funzione</string>
     <string name="settings_serial">Seriale#</string>
     <string name="settings_lat">Latitudine</string>
     <string name="settings_lon">Longitudine</string>
@@ -155,9 +197,9 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="settings_fake_data">Dati alterati</string>
     <string name="settings_notify">Notifiche di aggiornamento</string>
     <string name="settings_ondemand">Restringi su richiesta</string>
+    <string name="settings_blacklist">Metti in Blacklist accounts, applicazioni e contatti</string>
     <string name="settings_log">Registro errori (richiede riavvio)</string>
     <string name="settings_expert">Modalità esperto</string>
-    <string name="settings_dangerous">Restringi funzioni pericolose</string>
     <string name="settings_confidence">Intervallo massimo di confidenza nella ricezione</string>
     <string name="settings_experimental">Funzioni sperimentali (richiede riavvio)</string>
     <string name="settings_https">Usa connessioni sicure</string>
@@ -166,7 +208,8 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="settings_parameters">Mostra parametri dei dati utilizzati</string>
     <string name="settings_cid">GSM Cell ID</string>
     <string name="settings_lac">GSM LAC</string>
-    <string name="help_longpress">Tieni premuto sul nome per selezionare</string>
+    <string name="settings_quirks">Anomalie</string>
+    <string name="help_longpress">Premi a lungo sul nome per selezionare</string>
     <string name="help_ondemand">le restrizioni verranno richieste</string>
     <string name="help_application">Applicazione</string>
     <string name="help_internet">ha il permesso internet</string>
@@ -174,7 +217,7 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
     <string name="help_used">ha utilizzato questo dato</string>
     <string name="help_used_grayed">dati di utilizzo non disponibili</string>
     <string name="help_frozen">è disabilitato</string>
-    <string name="help_dangerous">restringere può causare problemi</string>
+    <string name="help_dangerous">restrizioni possono causare problemi</string>
     <string name="help_half">ristretto in parte</string>
     <string name="help_attention">restrizioni necessitano di attenzione</string>
     <string name="help_restricted">restrizioni modificate</string>
@@ -185,7 +228,7 @@ tuttavia non è possibile garantire che funzioni perfettamente su qualunque disp
 \nTocca l\'icona dell\'applicazione per le restrizioni e le impostazioni dettagliate</string>
     <string name="tutorial_detailsheader">Tocca l\'icona dell\'applicazione per ulteriori azioni</string>
     <string name="tutorial_detailslist">Tocca la freccia verso il basso per visualizzare le funzioni escluse di una categoria ristretta</string>
-    <string name="permission_manage">Gestisci le applicazioni, inclusa la chiusura</string>
-    <string name="permission_restrictions">Gestisci restrizioni e impostazioni di XPrivacy</string>
+    <string name="permission_manage">Gestisce le applicazioni, inclusa la chiusura</string>
+    <string name="permission_restrictions">Gestisce le restrizioni e le impostazioni di XPrivacy</string>
 
 </resources>

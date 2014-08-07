@@ -13,11 +13,420 @@ Changelog
 * [Xposed module repository](http://repo.xposed.info/module/biz.bokhorst.xprivacy)
 * [GitHub releases](https://github.com/M66B/XPrivacy/releases)
 
+**Important**
+
+* Xposed version 2.6+ is required
+* Updating from a version prior to 2.0.35 the main template will be reset to default
+* Updating from a version prior to 2.1.5 on demand restricting will be disabled until the update is completed
+* Updating from a version prior to 2.1.8 you will need to setup the IPC restrictions again
+* Updating from a version prior to 2.1.21 you will need to setup the IPC restrictions again, except for *Reflection*
+* From version 2.0.29 dangerous functions need to be restricted manually (manually includes the template, if defined to do so)
+* From version 2.1.20 batch operations (toggle restrictions for multiple applications) require a pro license
+	* I have put about 2000 hours into developing and supporting XPrivacy so far. The reason for [accepting donations](http://www.xprivacy.eu/) is to keep myself motivated to keep doing this. Unfortunately the number of donations is quite low and thus not very motivating. So, don't start complaining about this change, but instead think about supporting this huge project. You can still fully protect your privacy with all the free features of XPrivacy. I have made a promise that you will always be able to do so and I intent to keep this promise.
+* From version 2.1.21-5 *I don't know* will allow dangerous functions once (other functions are still denied once)
+* **Please send the support info when XPrivacy asks for it**
+
 **Next release**
 
 [Open issues](https://github.com/M66B/XPrivacy/issues?state=open)
 
-**Version 2.0.27 BETA**
+**Version 2.2.1 BETA**
+
+* Fixed all problems reported through the support info
+* Removed restriction *IPC.Reflection* to fix delays/freezes ([issue](/../../issues/1820))
+* Better handling of [StrictMode](http://developer.android.com/reference/android/os/StrictMode.html)
+* Updated Polish translation
+
+**Version 2.2 STABLE**
+
+Changes since last stable version:
+
+* Added a series of new restrictions and improved/extended existing restrictions
+* Redesigned on demand restricting dialog
+* Added experimental support for [Cydia Substrate](http://www.cydiasubstrate.com/)
+* Several improvements and bug fixes
+* See for all details the changes since version 2.1.5
+
+Changes since previous version:
+
+* Updated German translation
+* Updated Italian translation
+* Updated Japanese translation
+* Updated Norwegian translation
+* Remember on demand dialog settings across reboots ([issue](/../../issues/1812))
+* Showing stored version in *About* when different from current version
+* Removed function help from on demand dialog
+* Displaying less details in on demand dialog in expert mode
+
+**Version 2.1.26 BETA**
+
+* Fixed crash while deleting white/black list entries
+* Fixed all problems reported through the support info
+* Updated Slovak translation
+
+**Version 2.1.25 TEST**
+
+* Enabled Google Maps API v2 restrictions
+* Added restrictions for [Google Maps API v1](https://developers.google.com/maps/documentation/android/v1/reference/index) ([issue](/../../issues/1807))
+
+**Version 2.1.24-2 TEST**
+
+* Added IPC restriction *ICameraService*
+
+**Version 2.1.24-1 TEST**
+
+* Updated some texts
+* Added restrictions for [Google Maps API v2](http://developer.android.com/reference/com/google/android/gms/maps/GoogleMap.html) ([issue](/../../issues/1807))
+
+**Version 2.1.24 TEST**
+
+* Added category help
+* Moved on demand restricting details to expert mode
+* Rewrote location restrictions
+* Fixed fake location for Play services locations
+* Optimized *intent* restricting for performance
+* Moved *android.intent.action.NEW_OUTGOING_CALL* and *CallLogProvider* from *Phone* to *Calling* category
+* Added *quirks* settings
+* Updated Dutch translation
+* Updated German translation
+* Updated Italian translation
+* Updated Lithuanian translation
+
+**Version 2.1.22 BETA**
+
+* Added reset button to on demand dialog
+* Optimized IPC restrictions performance
+* Updated Japanese translation
+
+**Version 2.1.21 TEST**
+
+* Added option to specify file name to export intent ([issue](/../../issues/1784))
+* Added option to blacklist applications, accounts and contacts ([issue](/../../issues/1781))
+* Fixed order of applications to allow ([Pro license](http://www.xprivacy.eu/) only)
+* Allowing cancel of accounts, applications and contacts to allow dialog
+* Faster and more secure IPC restriction implementation with transaction whitelisting
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Improved on demand dialog layout
+* Added help for function documentation icon
+* Show function help in on demand dialog ([issue](/../../issues/1790))
+* Allow dangerous functions for *I don't know*
+* Fixed on demand dialog freeze by not on demand restricting in some situations, see also the [FAQ](https://github.com/M66B/XPrivacy#FAQ64)
+* Updated Dutch translation
+* Updated Japanese translation
+* Updated Slovenian translation
+
+**Version 2.1.20 BETA**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Added option to sort by state ([issue](/../../issues/1772))
+* Some small performance optimizations
+* Require a pro license for batch operations (toggle restrictions for multiple applications)
+	* I have put about 2000 hours into developing and supporting XPrivacy so far. The reason for [accepting donations](http://www.xprivacy.eu/) is to keep myself motivated to keep doing this. Unfortunately the number of donations is quite low and thus not very motivating. So, don't start complaining about this change, but instead think about supporting this huge project. You can still fully protect your privacy with all the free features of XPrivacy. I have made a promise that you will always be able to do so and I intent to keep this promise.
+* Allow white listing of top folders of file name of *android.intent.action.VIEW*
+* Made *getAllProviders* and *getBestProvider* dangerous
+* Updated Danish translation
+* Updated Dutch translation
+* Updated German translation
+* Updated Slovak translation
+
+**Version 2.1.19 BETA**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Cache empty settings (performance)
+* Updated Russian translation
+
+**Version 2.1.18 TEST**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Leave on demand dialog buttons enabled when new dialog within 1 second
+* Updated in application documentation, thanks @[an0n981](https://github.com/an0n981)
+* Updated German translation
+* Updated Vietnamese translation
+
+**Version 2.1.17 TEST**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Removed restrictions for *NEW_PICTURE* and *ACTION_NEW_VIDEO* broadcasts
+	* Has been replaced by:
+* Added restrictions for [ContentResolver.open...](http://developer.android.com/reference/android/content/ContentResolver.html)
+* Added restriction for *InputDevice.getName*
+* Added restriction for *addGpsStatusListener*, *getAllProviders* and *getBestProvider*
+* Added parameter provider name to *isProviderEnabled*, *getLastKnownLocation*, *requestLocationUpdates*, *requestSingleUpdate*, and *sendExtraCommand*
+* Added parameter host name to *getAllByName*, *getByAddress* and *getByName*
+* Added parameter path to *MediaRecorder.setOutputFile*
+* Added restriction for *getPackagesForUid*
+* Added process name parameter to *queryContentProviders*
+* Added restriction *SIP.isSipWifiOnly*
+* Added parameter destination address to *sendDataMessage*, *sendMultipartTextMessage* and *sendTextMessage* (SMS)
+* Added whitelist to *sendDataMessage*, *sendMultipartTextMessage* and *sendTextMessage* (SMS)
+* Added parameter key to *%imei*, *%hostname*, *%serialno*, *%macaddr* and *%cid*
+* Added parameter user agent to *getUserAgentString*
+* Added parameter device name to *USB.getDeviceId*
+* Added white list to *getAllByName*, *getByAddress* and *getByName*
+* Added restriction for *LinkAddress.toString* (Android "L") ([issue](/../../issues/1757))
+* Added restriction for heart rate sensor (Android "L") ([issue](/../../issues/1757))
+* Added restriction for *USB.getSerialNumber* (Android "L") ([issue](/../../issues/1757))
+* Added restriction for new camera device (Android "L") ([issue](/../../issues/1757))
+* One second delay before enabling on demand dialog buttons
+* Updated Dutch translation
+* Updated Italian translation
+
+**Version 2.1.16 BETA**
+
+* Fixed repeating on demand restricting
+
+**Version 2.1.15 BETA**
+
+* Added restrictions for NEW_PICTURE and ACTION_NEW_VIDEO broadcasts
+* Fixed on demand once caching restriction
+
+**Version 2.1.14 BETA**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Fixed returning wrong restriction sometimes for repeated on demand restricting
+* Fixed finger print lockscreen ([issue](/../../issues/1759))
+* Added allow/deny once for category ([issue](/../../issues/1764))
+* Added white/black listing for parent folder ([issue](/../../issues/1474))
+* Added option to disable restrictions at boot:
+
+```
+cd /data/system/xprivacy
+echo "ipc" >disabled
+echo "system.getInstalledProviders" >>disabled
+```
+
+**Version 2.1.12 BETA**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Fixed compatibility with [Boat Browser](https://play.google.com/store/apps/details?id=com.boatbrowser.free) ([issue](/../../issues/1760))
+* Fixed on demand restricting dialog background color for dangerous functions / system applications
+* Added statistics to title of usage list
+* Updated Slovak translation
+* Updated traditional Chinese translation
+
+**Version 2.1.11 BETA**
+
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Attempt to fix on demand transparency ([issue](/../../issues/1755))
+
+**Version 2.1.10 BETA**
+
+* Fixed IPC restrictions
+
+**Version 2.1.9 BETA**
+
+* Added some help texts
+* Fixed all problems reported through the support info
+	* Thanks for sending all the support info!
+* Added IPC restriction *bluetooth*
+* Updated Dutch translation
+* Updated German translation
+
+**Version 2.1.8 TEST**
+
+* Allow management binder transactions
+	* *service list* will not trigger IPC restrictions anymore
+* Made IPC restrictions apply to Java calls too
+	* **The IPC restrictions need to be set again, because they were renamed to prevent trouble**
+* Added IPC restrictions
+	* *ISipService*
+	* *ISms*
+	* *INfcAdapter*
+	* *IAppWidgetService*
+	* *IBluetoothManager*
+	* *IInputManager*
+	* *SensorServer*
+	* *IUsbManager*
+* Added get method [reflection](http://en.wikipedia.org/wiki/Reflection_(computer_programming)) restriction (IPC category)
+	* Methods can be white/black listed
+* Added experimental support for [Cydia Substrate](http://www.cydiasubstrate.com/)
+	* *Build.SERIAL* cannot be restricted
+	* *Settings.Secure.ANDROID_ID* cannot be restricted
+* Made update service not run for future versions (for testing purposes)
+* Performance improvements for AOSP based ROMs, including [CyanogenMod](http://www.cyanogenmod.org/) and [OmniROM](http://omnirom.org/)
+* Attempted to fix on demand dialog freezing by rewriting on demand dialog
+* Removed enabling on demand restricting on update
+	* You can use [PlayPermissionsExposed](http://forum.xda-developers.com/xposed/modules/playpermissionsexposed-fix-play-store-t2783076) instead
+* Fixed template function exceptions being display wrong for 15 seconds in some situations
+* Applying template will not set disabled restrictions anymore ([issue](/../../issues/1747))
+* Displaying *changed* state when all restrictions are cleared ([issue](/../../issues/1748))
+	* The application state is shown with a color left in the application list (see also the help legend)
+* Added restrictions for [UsbDevice](http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html) ([issue](/../../issues/1750))
+* Updated Slovak translation
+
+**Version 2.1.6 BETA**
+
+* Fixed updating dangerous function restrictions when restrict dangerous enabled ([issue](/../../issues/1742))
+* Display system components as disabled when restricting system components is not enabled ([issue](/../../issues/1744))
+* Display no usage data when restriction not available or disabled
+
+**Version 2.1.5 STABLE**
+
+* Added restrictions for [SIP](http://en.wikipedia.org/wiki/Session_Initiation_Protocol) calling ([issue](/../../issues/1739))
+* Disabling on demand restricting until update service completes
+* Showing whitelist icon on category level ([issue](/../../issues/1741))
+* Made *About* scrollable
+* Updated Italian translation
+* Updated Lithuanian translation
+
+**Version 2.1.4 STABLE**
+
+* Fixed applying template with dangerous function restrictions
+* Fixed caching of function template settings
+
+**Version 2.1.3 STABLE**
+
+* Added short usage instructions (check *About*)
+* Added *I don't know* to the on demand restricting dialog, which will deny once
+* Updated Dutch translation
+* Updated German translation
+* Updated Slovak translation
+
+**Version 2.1.2 STABLE**
+
+* Fixed displaying half on demand state template
+* Fixed dangerous functions defaults
+* Fixed on demand defaults when applying template
+* Fixed on demand defaults when on demand restricting category
+
+**Version 2.1.1 STABLE**
+
+* Added restriction for internet administration (*inet_admin*)
+* Added restriction for internet bandwidth statistics/administration (*inet_bw*)
+* Added restriction for [VPN](http://en.wikipedia.org/wiki/Vpn) services (*inet_vpn*)
+* Added restriction for [Mesh networking](http://en.wikipedia.org/wiki/Mesh_networking) services (*inet_mesh*)
+* Added restriction for [MTP](http://en.wikipedia.org/wiki/Media_Transfer_Protocol)
+* Fixed not disabling on demand function settings when on demand restricting for category is disabled
+* Hiding status bar when showing on demand restricting dialog
+
+**Version 2.1 STABLE**
+
+* Fixed applying template restricting dangerous functions ([issue](/../../issues/1728))
+* Applying template with on demand restricting will enabled on demand restricting setting ([issue](/../../issues/1727))
+* Fixed *inet*, *media* and *sdcard* always on demand restricting ([issue](/../../issues/1722))
+* Do not import version number ([issue](/../../issues/1721))
+* Display *Default* as first template name ([issue](/../../issues/1723))
+* Updated Dutch translation
+
+**Version 2.0.38 STABLE**
+
+* Showing enabled (on/off) state
+* Requesting restart for *load* and *loadLibrary*
+* Resetting on demand restricting for system applications on upgrade
+* Updated Slovak translation
+
+**Version 2.0.37 TEST**
+
+* Display whitelist icon when there are allowed accounts, applications and/or contacts
+* Restrictions for individual sensors
+	* *getDefaultSensor* and *getSensorList* needs to be disabled
+	* *getDefaultSensor* and *getSensorList* were made dangerous
+* Allow to select category when toggling restrictions
+
+**Version 2.0.36 STABLE**
+
+* Reddish background for template group indicators
+* Enabling on demand restricting before application is being updated
+* No on demand restricting for restrictions which cannot be used (see limitations)
+* Dropped support for Cydia Substrate, because there are too many unsolved problems
+
+**Version 2.0.35 BETA**
+
+* Fixed toggling dangerous functions not immediately displaying correct template restriction
+* Removed exception for disabling on demand restricting when changing category restriction on demand
+* Enable kill application menu only if application is running
+* Added experimental support for [Cydia Substrate](http://www.cydiasubstrate.com/)
+	* I can't get Cydia Substrate working if Xposed is not installed, which may be caused by an incompatible *app_process*
+	* Cydia Substrate is not able to hook *Settings.Secure*, for which a boot class loader is needed
+	* *Build.SERIAL* cannot be restricted
+	* There will be limited support for this
+
+**Version 2.0.34 BETA**
+
+* Removed delay when opening application details
+* Setting on demand restriction to enabled for functions with a white list when on demand restricting a category
+* Made *network/getScanResults* dangerous
+	* Because *location/getScanResults* is dangerous too
+* Made *accounts/getTokenGoogle* and *accounts/getTokenWithNotification* dangerous
+* Made *accounts/getAuthToken* and *accounts/getAuthTokenByFeatures* dangerous
+* Made *identification//sys/block/.../cid* and *identification//sys/class/.../cid* dangerous
+* Made *internet/getAllByName*, *internet/getByAddress* and *internet/getByName* dangerous
+* Made all *shell* functions dangerous
+
+All above functions throw an exception when restricted.
+Although the exception is part of the standard API, a lot of applications are not prepared to handle an exception.
+
+**This version will reset the main template to the default** (if not done by an earlier version)
+
+**Version 2.0.33 BETA**
+
+* Fixed applying template / dangerous functions
+* Fixed default on demand restricting / dangerous functions
+
+**Version 2.0.32 BETA**
+
+* Fetch user applications only by default
+* Added option to allow/disallow all contacts
+* Fixed dangerous restrictions being asked after update
+* Enable on demand restricting on application update ([reason](http://www.xda-developers.com/android/play-store-permissions-change-opens-door-to-rogue-apps/))
+
+**Version 2.0.31 TEST**
+
+* Update notifications only if XPrivacy is enabled in Xposed
+* Directly open Xposed pages, thanks @[liudongmiao](https://github.com/liudongmiao)
+* Added multiple template definitions
+	* The first template will always be applied to new applications
+* Added allow contacts by group
+* Fixed caching of not set settings
+* Updated simplified Chinese translation
+* Updated traditional Chinese translation
+
+**Version 2.0.30 TEST**
+
+* Fixed template settings caching
+* Fixed applying template
+* Fixed function exceptions defaults
+* Fixed displaying functions which cannot be restricted
+* Updated Italian translation
+
+**Version 2.0.29 TEST**
+
+* Showing restrictions which cannot be applied as disabled, thanks @[liudongmiao](https://github.com/liudongmiao)
+* Made filter and sort dialog scrollable, thanks @[liudongmiao](https://github.com/liudongmiao)
+* Made toggle restrictions dialog scrollable
+* Removed setting *Restrict dangerous functions* ([issue](/../../issues/1704))
+	* The issue contains additional information
+* Added half check boxes to template ([issue](/../../issues/1706))
+* Always use settings cache for UI (performance)
+* Always use restriction cache for UI (performance)
+* Fixed user defined dangerous functions (some names did overlap)
+	* Unfortunately you need to define them again
+* Prevent restriction of identification category for Android
+* Updated simplified Chinese translation
+
+**Version 2.0.28 BETA**
+
+* Added *WRITE_CALENDAR* permissions to calendar restriction
+* Updated XposedBridge to version 54 (Xposed version 2.6 is required now)
+* Show all usage data ([issue](/../../issues/1695))
+* Show toggle on demand restricting on/off always ([issue](/../../issues/1697))
+* Added option to merge template with existing restrictions ([issue](/../../issues/1700))
+* Fixed selected accounts when imported from another device ([issue](/../../issues/1699))
+	* Some people need to allow accounts again, unfortunately there is no way to fix this
+* Updated Dutch translation
+* Updated German translation
+* Updated Lithuanian translation
+* Updated Norwegian translation
+
+**Version 2.0.27 STABLE**
 
 * Showing icon if there is white/black list for a function ([issue](/../../issues/1654))
 	* Thanks @[an0n981](https://github.com/an0n981) for the icons

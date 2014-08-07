@@ -22,9 +22,9 @@ public class RState {
 		int userId = Util.getUserId(Process.myUid());
 
 		// Get if on demand
-		boolean onDemand = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingOnDemand, true, false);
+		boolean onDemand = PrivacyManager.getSettingBool(userId, PrivacyManager.cSettingOnDemand, true);
 		if (onDemand)
-			onDemand = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingOnDemand, false, false);
+			onDemand = PrivacyManager.getSettingBool(-uid, PrivacyManager.cSettingOnDemand, false);
 
 		boolean allRestricted = true;
 		boolean someRestricted = false;
@@ -105,7 +105,8 @@ public class RState {
 			List<PRestriction> listPRestriction = new ArrayList<PRestriction>();
 			listPRestriction.add(new PRestriction(mUid, mRestrictionName, mMethodName, restricted, asked));
 			PrivacyManager.setRestrictionList(listPRestriction);
-			PrivacyManager.setSetting(mUid, PrivacyManager.cSettingState, Integer.toString(ActivityMain.STATE_CHANGED));
+			PrivacyManager.setSetting(mUid, PrivacyManager.cSettingState,
+					Integer.toString(ApplicationInfoEx.STATE_CHANGED));
 			PrivacyManager.setSetting(mUid, PrivacyManager.cSettingModifyTime,
 					Long.toString(System.currentTimeMillis()));
 		}

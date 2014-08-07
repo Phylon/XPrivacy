@@ -19,6 +19,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,16 +36,19 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.TransactionTooLargeException;
+import android.os.UserHandle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 public class Util {
 	private static boolean mPro = false;
 	private static boolean mLog = true;
 	private static boolean mLogDetermined = false;
-	private static boolean mHasLBE = false;
-	private static boolean mHasLBEDetermined = false;
+	private static Boolean mHasLBE = null;
 
 	private static Version MIN_PRO_VERSION = new Version("1.12");
 	private static String LICENSE_FILE_NAME = "XPrivacy_license.txt";
@@ -61,7 +66,7 @@ public class Util {
 		if (!mLogDetermined && uid > 0) {
 			mLogDetermined = true;
 			try {
-				mLog = PrivacyManager.getSettingBool(0, PrivacyManager.cSettingLog, false, false);
+				mLog = PrivacyManager.getSettingBool(0, PrivacyManager.cSettingLog, false);
 			} catch (Throwable ignored) {
 				mLog = false;
 			}
@@ -101,6 +106,8 @@ public class Util {
 			priority = Log.WARN;
 		else if (ex instanceof SecurityException)
 			priority = Log.WARN;
+		else if (ex instanceof TransactionTooLargeException)
+			priority = Log.WARN;
 		else
 			priority = Log.ERROR;
 
@@ -117,7 +124,25 @@ public class Util {
 	}
 
 	public static void logStack(XHook hook, int priority) {
-		log(hook, priority, Log.getStackTraceString(new Exception("StackTrace")));
+		logStack(hook, priority, false);
+	}
+
+	public static void logStack(XHook hook, int priority, boolean cl) {
+		StringBuilder trace = new StringBuilder();
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+			trace.append(ste.toString());
+			if (cl)
+				try {
+					Class<?> clazz = Class.forName(ste.getClassName(), false, loader);
+					trace.append(" [");
+					trace.append(clazz.getClassLoader().toString());
+					trace.append("]");
+				} catch (ClassNotFoundException ignored) {
+				}
+			trace.append("\n");
+		}
+		log(hook, priority, trace.toString());
 	}
 
 	public static int getXposedAppProcessVersion() {
@@ -195,9 +220,9 @@ public class Util {
 	public static int getAppId(int uid) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 			try {
+				// TODO: update by method in SDK 20
 				// UserHandle: public static final int getAppId(int uid)
-				Class<?> clazz = Class.forName("android.os.UserHandle");
-				Method method = (Method) clazz.getDeclaredMethod("getAppId", int.class);
+				Method method = (Method) UserHandle.class.getDeclaredMethod("getAppId", int.class);
 				uid = (Integer) method.invoke(null, uid);
 			} catch (Throwable ex) {
 				Util.log(null, Log.WARN, ex.toString());
@@ -211,9 +236,9 @@ public class Util {
 		if (uid > 99) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 				try {
+					// TODO: update by method in SDK 20
 					// UserHandle: public static final int getUserId(int uid)
-					Class<?> clazz = Class.forName("android.os.UserHandle");
-					Method method = (Method) clazz.getDeclaredMethod("getUserId", int.class);
+					Method method = (Method) UserHandle.class.getDeclaredMethod("getUserId", int.class);
 					userId = (Integer) method.invoke(null, uid);
 				} catch (Throwable ex) {
 					Util.log(null, Log.WARN, ex.toString());
@@ -243,6 +268,8 @@ public class Util {
 			licenseFile = new File(storageDir + File.separator + ".xprivacy" + File.separator + LICENSE_FILE_NAME);
 
 		String importedLicense = importProLicense(licenseFile);
+		if (importedLicense == null)
+			return null;
 
 		// Check license file
 		licenseFile = new File(importedLicense);
@@ -271,32 +298,45 @@ public class Util {
 	public static String importProLicense(File licenseFile) {
 		// Get imported license file name
 		String importedLicense = getUserDataDirectory(Process.myUid()) + File.separator + LICENSE_FILE_NAME;
+		File out = new File(importedLicense);
 
-		// Import license file
+		// Check if license file exists
 		if (licenseFile.exists() && licenseFile.canRead()) {
 			try {
-				File out = new File(importedLicense);
+				// Import license file
 				Util.log(null, Log.WARN, "Licensing: importing " + out.getAbsolutePath());
-				InputStream is = new FileInputStream(licenseFile.getAbsolutePath());
-				OutputStream os = new FileOutputStream(out.getAbsolutePath());
-				byte[] buffer = new byte[1024];
-				int read;
-				while ((read = is.read(buffer)) != -1)
-					os.write(buffer, 0, read);
-				is.close();
-				os.flush();
-				os.close();
+				InputStream is = null;
+				is = new FileInputStream(licenseFile.getAbsolutePath());
+				try {
+					OutputStream os = null;
+					try {
+						os = new FileOutputStream(out.getAbsolutePath());
+						byte[] buffer = new byte[1024];
+						int read;
+						while ((read = is.read(buffer)) != -1)
+							os.write(buffer, 0, read);
+						os.flush();
+					} finally {
+						if (os != null)
+							os.close();
+					}
+				} finally {
+					if (is != null)
+						is.close();
+				}
 
-				// Protect license file
+				// Protect imported license file
 				setPermissions(out.getAbsolutePath(), 0700, Process.myUid(), Process.myUid());
 
+				// Remove original license file
 				licenseFile.delete();
 			} catch (FileNotFoundException ignored) {
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 			}
 		}
-		return importedLicense;
+
+		return (out.exists() && out.canRead() ? importedLicense : null);
 	}
 
 	public static Version getProEnablerVersion(Context context) {
@@ -353,15 +393,17 @@ public class Util {
 	}
 
 	public static boolean hasLBE() {
-		if (!mHasLBEDetermined) {
-			mHasLBEDetermined = true;
+		if (mHasLBE == null) {
+			mHasLBE = false;
 			try {
 				File apps = new File(Environment.getDataDirectory() + File.separator + "app");
 				File[] files = (apps == null ? null : apps.listFiles());
 				if (files != null)
 					for (File file : files)
-						if (file.getName().startsWith("com.lbe.security"))
+						if (file.getName().startsWith("com.lbe.security")) {
 							mHasLBE = true;
+							break;
+						}
 			} catch (Throwable ex) {
 				Util.bug(null, ex);
 			}
@@ -528,5 +570,19 @@ public class Util {
 			return false;
 		}
 		return src.delete();
+	}
+
+	public static List<View> getViewsByTag(ViewGroup root, String tag) {
+		List<View> views = new ArrayList<View>();
+		for (int i = 0; i < root.getChildCount(); i++) {
+			View child = root.getChildAt(i);
+
+			if (child instanceof ViewGroup)
+				views.addAll(getViewsByTag((ViewGroup) child, tag));
+
+			if (tag.equals(child.getTag()))
+				views.add(child);
+		}
+		return views;
 	}
 }

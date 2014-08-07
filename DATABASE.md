@@ -68,7 +68,7 @@
 
 <h3>TABLE:setting</h3>
 
-<p>The setting table holds information pertaining to settings on a global (uid='0') and per UID basis, as well as the white/blacklists.</p>
+<p>The setting table holds information pertaining to settings on a global (uid=userID; 0 for the main user) and per UID basis, as well as the white/blacklists.</p>
 
 | Field | Type    | NULLABLE |
 |-------|---------|----------|
@@ -152,6 +152,15 @@
 <p><code>SELECT s.uid, s.name, r.restricted FROM setting s JOIN restriction r on s.uid=r.uid WHERE (r.method='inet' and r.restricted IN (0,1,3)) and (s.type='Library' and s.value='true') ORDER BY s.uid, s.name;</code></p>
 
 <p>This will list UID, native library name and INET permission value for all apps that have INET access (onDemand or permanent) as well as white listed native libraries</p>
+
+<code>UPDATE setting SET value='true' WHERE name='Log';</code>
+
+<p>This will enabled debug logging</p>
+
+<code>UPDATE setting SET value='false' WHERE name LIKE 'Dangerous%';</code>
+
+<p>This will remove all 'dangerous restrictions' from the template</p>
+
 <h3><em>usage.db</em></h3>
 
 <code>SELECT * FROM usage ORDER BY time DESC;</code>
